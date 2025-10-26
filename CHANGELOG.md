@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2025-10-26
+
+### Added
+- Form ID filtering: Option to restrict plugin to specific Elementor form IDs (comma-separated)
+- Date-based testing: Testing tool now accepts custom date input to test URLs for any date
+- Real production CSV files for Michal Stern classes (Sunday and Tuesday schedules)
+
+### Changed
+- CSV path fields in settings are now editable (removed readonly attribute)
+- CSV files moved from `sample-data/` to `csv-data/` directory
+- Removed sample CSV files, keeping only production data
+
+### Fixed
+- Settings page CSV path fields can now be manually edited
+- Form handler now checks if form ID matches before processing
+
 ## [1.0.0] - 2025-10-26
 
 ### Added
