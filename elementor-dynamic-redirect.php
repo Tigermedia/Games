@@ -3,7 +3,7 @@
  * Plugin Name: Elementor Dynamic Redirect
  * Plugin URI: https://github.com/Tigermedia/elementor-form-dynamic-redirect
  * Description: Conditional form redirects for Elementor based on payment method with dynamic CSV-based URL generation
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Tigermedia
  * Author URI: https://github.com/Tigermedia
  * Text Domain: elementor-dynamic-redirect
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('EDR_VERSION', '1.1.0');
+define('EDR_VERSION', '1.2.0');
 define('EDR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EDR_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('EDR_PLUGIN_FILE', __FILE__);
@@ -153,15 +153,15 @@ function edr_activate_plugin() {
         file_put_contents($edr_dir . '/.htaccess', $htaccess_content);
     }
 
-    // Set default options
+    // Set default options with auto-configured CSV paths
     $default_settings = array(
         'team_field_id' => 'team',
         'kupa_field_id' => 'kupa',
         'payment_field_id' => 'payment_method',
         'payment_trigger_value' => 'אשראי',
         'form_ids' => '',
-        'sunday_csv_path' => '',
-        'tuesday_csv_path' => '',
+        'sunday_csv_path' => EDR_PLUGIN_DIR . 'csv-data/michal-stern-sunday.csv',
+        'tuesday_csv_path' => EDR_PLUGIN_DIR . 'csv-data/michal-stern-tuesday.csv',
         'debug_enabled' => false,
     );
 

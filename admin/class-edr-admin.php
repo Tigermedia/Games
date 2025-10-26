@@ -59,9 +59,21 @@ class EDR_Admin {
      */
     public function add_admin_menu() {
         // Main menu page
-        add_options_page(
+        add_menu_page(
             __('Elementor Dynamic Redirect', 'elementor-dynamic-redirect'),
             __('Form Redirect', 'elementor-dynamic-redirect'),
+            'manage_options',
+            'elementor-dynamic-redirect',
+            array($this, 'render_settings_page'),
+            'dashicons-randomize',
+            58
+        );
+
+        // Settings submenu (duplicate of main page)
+        add_submenu_page(
+            'elementor-dynamic-redirect',
+            __('Settings', 'elementor-dynamic-redirect'),
+            __('Settings', 'elementor-dynamic-redirect'),
             'manage_options',
             'elementor-dynamic-redirect',
             array($this, 'render_settings_page')

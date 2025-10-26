@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-10-26
+
+### Added
+- Top-level admin menu with proper submenu structure
+- Auto-configuration of CSV paths on plugin activation
+
+### Changed
+- Admin menu moved from Settings submenu to standalone top-level menu
+- CSV paths now automatically point to included CSV files on activation
+- Menu now properly displays: Settings, CSV Manager, Testing Tool, and Help pages
+
+### Fixed
+- Admin submenu pages now visible and accessible
+- Menu structure corrected to use `add_menu_page()` instead of `add_options_page()`
+
 ## [1.1.0] - 2025-10-26
 
 ### Added
