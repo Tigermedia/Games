@@ -18,9 +18,10 @@ class EDR_Redirect {
      * Generate redirect URL based on form data
      *
      * @param array $form_data Form submission data
+     * @param string $custom_date Optional custom date (Y-m-d format) for testing
      * @return string|null Redirect URL or null if no redirect needed
      */
-    public static function get_redirect_url($form_data) {
+    public static function get_redirect_url($form_data, $custom_date = null) {
         EDR_Core::log('Starting redirect URL generation', $form_data);
 
         // Get settings
@@ -60,13 +61,13 @@ class EDR_Redirect {
             return null;
         }
 
-        // Get today's date
-        $today = date('Y-m-d');
+        // Use custom date if provided, otherwise use today's date
+        $target_date = $custom_date ? $custom_date : date('Y-m-d');
 
         // Find matching row by date
-        $row = EDR_CSV_Handler::find_row_by_date($csv_data, $today, 'date');
+        $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'date');
         if (!$row) {
-            EDR_Core::log('No matching row found for today\'s date', $today);
+            EDR_Core::log('No matching row found for date', $target_date);
             return null;
         }
 
@@ -201,9 +202,10 @@ class EDR_Redirect {
      * Test redirect generation (for testing tool)
      *
      * @param array $test_data Test data
+     * @param string $custom_date Optional custom date for testing
      * @return array Result with URL and debug info
      */
-    public static function test_redirect($test_data) {
+    public static function test_redirect($test_data, $custom_date = null) {
         $result = array(
             'success' => false,
             'url' => '',
@@ -211,8 +213,8 @@ class EDR_Redirect {
             'debug' => array(),
         );
 
-        // Get redirect URL
-        $url = self::get_redirect_url($test_data);
+        // Get redirect URL with optional custom date
+        $url = self::get_redirect_url($test_data, $custom_date);
 
         if ($url) {
             $result['success'] = true;
@@ -224,12 +226,14 @@ class EDR_Redirect {
 
         // Add debug info
         $settings = EDR_Core::instance()->get_settings();
+        $target_date = $custom_date ? $custom_date : date('Y-m-d');
+
         $result['debug'] = array(
             'payment_method' => self::get_field_value($test_data, $settings['payment_field_id']),
             'team' => self::get_field_value($test_data, $settings['team_field_id']),
             'kupa' => self::get_field_value($test_data, $settings['kupa_field_id']),
             'trigger_value' => $settings['payment_trigger_value'],
-            'today' => date('Y-m-d'),
+            'test_date' => $target_date,
         );
 
         return $result;

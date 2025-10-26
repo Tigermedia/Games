@@ -94,11 +94,21 @@ class EDR_AJAX {
         // Get test data
         $test_data = isset($_POST['test_data']) ? $_POST['test_data'] : array();
 
+        // Get custom date if provided
+        $custom_date = isset($_POST['test_date']) ? sanitize_text_field($_POST['test_date']) : null;
+
         // Sanitize
         $test_data = $this->sanitize_form_data($test_data);
 
-        // Test redirect
-        $result = EDR_Redirect::test_redirect($test_data);
+        // Validate date format if provided
+        if ($custom_date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $custom_date)) {
+            wp_send_json_error(array(
+                'message' => __('Invalid date format. Use YYYY-MM-DD', 'elementor-dynamic-redirect'),
+            ));
+        }
+
+        // Test redirect with optional custom date
+        $result = EDR_Redirect::test_redirect($test_data, $custom_date);
 
         if ($result['success']) {
             wp_send_json_success($result);

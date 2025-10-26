@@ -63,6 +63,18 @@ $settings = EDR_Core::instance()->get_settings();
 
                         <tr>
                             <th scope="row">
+                                <label for="test_date"><?php esc_html_e('Test Date', 'elementor-dynamic-redirect'); ?></label>
+                            </th>
+                            <td>
+                                <input type="date" name="test_date" id="test_date" value="<?php echo esc_attr(date('Y-m-d')); ?>" class="regular-text">
+                                <p class="description">
+                                    <?php esc_html_e('Select the date to test. Must match a date in your CSV file.', 'elementor-dynamic-redirect'); ?>
+                                </p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">
                                 <label for="test_first_name"><?php esc_html_e('First Name', 'elementor-dynamic-redirect'); ?></label>
                             </th>
                             <td>
@@ -130,7 +142,7 @@ $settings = EDR_Core::instance()->get_settings();
                 <li><strong><?php esc_html_e('Payment Trigger Value:', 'elementor-dynamic-redirect'); ?></strong> <?php echo esc_html($settings['payment_trigger_value']); ?></li>
                 <li><strong><?php esc_html_e('Debug Mode:', 'elementor-dynamic-redirect'); ?></strong> <?php echo $settings['debug_enabled'] ? esc_html__('Enabled', 'elementor-dynamic-redirect') : esc_html__('Disabled', 'elementor-dynamic-redirect'); ?></li>
             </ul>
-            <p><?php esc_html_e('Make sure your CSV files contain an entry for today\'s date to see successful redirects.', 'elementor-dynamic-redirect'); ?></p>
+            <p><?php esc_html_e('You can test with any date by changing the "Test Date" field above. Make sure your CSV files contain an entry for the selected date.', 'elementor-dynamic-redirect'); ?></p>
         </div>
     </div>
 </div>
@@ -148,16 +160,18 @@ jQuery(document).ready(function($) {
             email: $('#test_email').val(),
         };
 
-        testRedirect(testData);
+        const testDate = $('#test_date').val();
+        testRedirect(testData, testDate);
     });
 
     // Quick tests
     $('.edr-quick-test-btn').on('click', function() {
         const testData = $(this).data('scenario');
-        testRedirect(testData);
+        const testDate = $('#test_date').val();
+        testRedirect(testData, testDate);
     });
 
-    function testRedirect(testData) {
+    function testRedirect(testData, testDate) {
         $('#edr-test-result').show();
         $('#edr-test-result-content').html('<p><?php esc_html_e('Testing...', 'elementor-dynamic-redirect'); ?></p>');
 
@@ -168,6 +182,7 @@ jQuery(document).ready(function($) {
                 action: 'edr_test_redirect',
                 nonce: edrAdmin.nonce,
                 test_data: testData,
+                test_date: testDate,
             },
             success: function(response) {
                 if (response.success) {
