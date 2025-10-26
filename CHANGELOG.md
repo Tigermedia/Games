@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.2] - 2025-10-26
+
+### Added
+- "Use Default Path" buttons in Settings page for CSV paths
+- Default path display showing correct server file paths
+- Helper text clarifying that server paths (not URLs) are required
+
+### Fixed
+- CSV path configuration now clearly shows correct file system paths
+- Prevents users from entering URLs instead of file paths
+
+### Improved
+- One-click button to populate correct CSV file paths
+- Better UX for configuring CSV file locations
+
 ## [1.3.1] - 2025-10-26
 
 ### Added

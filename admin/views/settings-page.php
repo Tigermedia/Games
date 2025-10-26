@@ -120,8 +120,12 @@ $settings = EDR_Core::instance()->get_settings();
                                    value="<?php echo esc_attr($settings['sunday_csv_path']); ?>"
                                    class="large-text"
                                    placeholder="/path/to/sunday-classes.csv">
+                            <button type="button" class="button" onclick="document.getElementById('sunday_csv_path').value='<?php echo esc_js(EDR_PLUGIN_DIR . 'csv-data/michal-stern-sunday.csv'); ?>'">
+                                <?php esc_html_e('Use Default Path', 'elementor-dynamic-redirect'); ?>
+                            </button>
                             <p class="description">
-                                <?php esc_html_e('Full path to Sunday classes CSV file. You can enter manually or upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
+                                <?php esc_html_e('Full server path to Sunday classes CSV file. Click "Use Default Path" to use the included CSV file.', 'elementor-dynamic-redirect'); ?><br>
+                                <strong><?php esc_html_e('Default:', 'elementor-dynamic-redirect'); ?></strong> <code><?php echo esc_html(EDR_PLUGIN_DIR . 'csv-data/michal-stern-sunday.csv'); ?></code>
                             </p>
                         </td>
                     </tr>
@@ -137,8 +141,12 @@ $settings = EDR_Core::instance()->get_settings();
                                    value="<?php echo esc_attr($settings['tuesday_csv_path']); ?>"
                                    class="large-text"
                                    placeholder="/path/to/tuesday-classes.csv">
+                            <button type="button" class="button" onclick="document.getElementById('tuesday_csv_path').value='<?php echo esc_js(EDR_PLUGIN_DIR . 'csv-data/michal-stern-tuesday.csv'); ?>'">
+                                <?php esc_html_e('Use Default Path', 'elementor-dynamic-redirect'); ?>
+                            </button>
                             <p class="description">
-                                <?php esc_html_e('Full path to Tuesday classes CSV file. You can enter manually or upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
+                                <?php esc_html_e('Full server path to Tuesday classes CSV file. Click "Use Default Path" to use the included CSV file.', 'elementor-dynamic-redirect'); ?><br>
+                                <strong><?php esc_html_e('Default:', 'elementor-dynamic-redirect'); ?></strong> <code><?php echo esc_html(EDR_PLUGIN_DIR . 'csv-data/michal-stern-tuesday.csv'); ?></code>
                             </p>
                         </td>
                     </tr>

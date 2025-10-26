@@ -3,7 +3,7 @@
  * Plugin Name: Elementor Dynamic Redirect
  * Plugin URI: https://github.com/Tigermedia/elementor-form-dynamic-redirect
  * Description: Conditional form redirects for Elementor based on payment method with dynamic CSV-based URL generation
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author: Tigermedia
  * Author URI: https://github.com/Tigermedia
  * Text Domain: elementor-dynamic-redirect
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('EDR_VERSION', '1.3.1');
+define('EDR_VERSION', '1.3.2');
 define('EDR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('EDR_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('EDR_PLUGIN_FILE', __FILE__);
