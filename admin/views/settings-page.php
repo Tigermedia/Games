@@ -102,9 +102,9 @@ $settings = EDR_Core::instance()->get_settings();
                                    id="sunday_csv_path"
                                    value="<?php echo esc_attr($settings['sunday_csv_path']); ?>"
                                    class="large-text"
-                                   readonly>
+                                   placeholder="/path/to/sunday-classes.csv">
                             <p class="description">
-                                <?php esc_html_e('Path to Sunday classes CSV file. Upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
+                                <?php esc_html_e('Full path to Sunday classes CSV file. You can enter manually or upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
                             </p>
                         </td>
                     </tr>
@@ -119,9 +119,9 @@ $settings = EDR_Core::instance()->get_settings();
                                    id="tuesday_csv_path"
                                    value="<?php echo esc_attr($settings['tuesday_csv_path']); ?>"
                                    class="large-text"
-                                   readonly>
+                                   placeholder="/path/to/tuesday-classes.csv">
                             <p class="description">
-                                <?php esc_html_e('Path to Tuesday classes CSV file. Upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
+                                <?php esc_html_e('Full path to Tuesday classes CSV file. You can enter manually or upload via CSV Manager.', 'elementor-dynamic-redirect'); ?>
                             </p>
                         </td>
                     </tr>
