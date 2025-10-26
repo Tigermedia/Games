@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2025-10-26
+
+### Changed
+- Date matching logic now finds the next upcoming lesson instead of requiring exact match
+- If test date falls between two lessons, returns URL for the next upcoming lesson
+- If test date matches a lesson exactly, returns that lesson's URL
+
+### Improved
+- More flexible date handling for real-world usage scenarios
+- Better user experience when testing with dates that don't match lessons exactly
+
 ## [1.2.0] - 2025-10-26
 
 ### Added

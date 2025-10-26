@@ -67,7 +67,10 @@ class EDR_CSV_Handler {
     }
 
     /**
-     * Find row by date
+     * Find row by date - Returns the next upcoming lesson
+     *
+     * If the date matches a lesson exactly, returns that lesson.
+     * If the date falls between two lessons, returns the next upcoming lesson.
      *
      * @param array $csv_data Parsed CSV data
      * @param string $date Date to find (Y-m-d format)
@@ -79,6 +82,15 @@ class EDR_CSV_Handler {
             return null;
         }
 
+        $target_timestamp = strtotime($date);
+        if ($target_timestamp === false) {
+            EDR_Core::log('Invalid date format', $date);
+            return null;
+        }
+
+        $next_lesson = null;
+        $smallest_diff = PHP_INT_MAX;
+
         foreach ($csv_data as $row) {
             if (!isset($row[$date_column])) {
                 continue;
@@ -86,17 +98,34 @@ class EDR_CSV_Handler {
 
             // Parse the date from the CSV
             $row_date = self::parse_date($row[$date_column]);
+            if (!$row_date) {
+                continue;
+            }
 
-            if ($row_date && $row_date === $date) {
-                EDR_Core::log('Found matching row for date', array(
-                    'date' => $date,
-                    'row' => $row
-                ));
-                return $row;
+            $row_timestamp = strtotime($row_date);
+
+            // Only consider lessons that are on or after the target date
+            if ($row_timestamp >= $target_timestamp) {
+                $diff = $row_timestamp - $target_timestamp;
+
+                // Keep track of the closest upcoming lesson
+                if ($diff < $smallest_diff) {
+                    $smallest_diff = $diff;
+                    $next_lesson = $row;
+                }
             }
         }
 
-        EDR_Core::log('No matching row found for date', $date);
+        if ($next_lesson) {
+            EDR_Core::log('Found next upcoming lesson for date', array(
+                'requested_date' => $date,
+                'lesson_date' => $next_lesson[$date_column],
+                'row' => $next_lesson
+            ));
+            return $next_lesson;
+        }
+
+        EDR_Core::log('No upcoming lesson found for date', $date);
         return null;
     }
 
