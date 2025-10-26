@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2025-10-26
+
+### Added
+- Enhanced debug output in testing tool showing detailed step-by-step diagnostics
+- Debug info now includes: payment_match, csv_path, csv_exists, csv_rows, row_found, column, column_exists
+- Specific error messages for each failure point in the redirect logic
+
+### Improved
+- Testing tool now provides clear, actionable error messages
+- Easier troubleshooting with detailed debug information
+- Better visibility into why redirects fail
+
 ## [1.3.0] - 2025-10-26
 
 ### Changed

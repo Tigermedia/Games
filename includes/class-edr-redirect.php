@@ -213,7 +213,106 @@ class EDR_Redirect {
             'debug' => array(),
         );
 
-        // Get redirect URL with optional custom date
+        // Get settings
+        $settings = EDR_Core::instance()->get_settings();
+        $target_date = $custom_date ? $custom_date : date('Y-m-d');
+
+        // Extract field values
+        $payment_method = self::get_field_value($test_data, $settings['payment_field_id']);
+        $team = self::get_field_value($test_data, $settings['team_field_id']);
+        $kupa = self::get_field_value($test_data, $settings['kupa_field_id']);
+
+        // Detailed debug info
+        $debug = array(
+            'payment_method' => $payment_method,
+            'team' => $team,
+            'kupa' => $kupa,
+            'trigger_value' => $settings['payment_trigger_value'],
+            'test_date' => $target_date,
+            'payment_match' => ($payment_method === $settings['payment_trigger_value']),
+        );
+
+        // Check payment method
+        if ($payment_method !== $settings['payment_trigger_value']) {
+            $result['message'] = sprintf(
+                __('Payment method "%s" does not match trigger value "%s"', 'elementor-dynamic-redirect'),
+                $payment_method,
+                $settings['payment_trigger_value']
+            );
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        // Get CSV path
+        $csv_path = self::get_csv_path_for_team($team, $settings);
+        $debug['csv_path'] = $csv_path;
+        $debug['csv_exists'] = $csv_path ? file_exists($csv_path) : false;
+
+        if (!$csv_path) {
+            $result['message'] = sprintf(
+                __('Could not determine CSV file for team "%s". Expected "ראשון"/"sunday" or "שלישי"/"tuesday"', 'elementor-dynamic-redirect'),
+                $team
+            );
+            $debug['sunday_csv'] = $settings['sunday_csv_path'];
+            $debug['tuesday_csv'] = $settings['tuesday_csv_path'];
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        if (!file_exists($csv_path)) {
+            $result['message'] = sprintf(
+                __('CSV file not found: %s', 'elementor-dynamic-redirect'),
+                $csv_path
+            );
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        // Parse CSV
+        $csv_data = EDR_CSV_Handler::parse_csv($csv_path);
+        if (is_wp_error($csv_data)) {
+            $result['message'] = sprintf(
+                __('Error parsing CSV: %s', 'elementor-dynamic-redirect'),
+                $csv_data->get_error_message()
+            );
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        $debug['csv_rows'] = count($csv_data);
+        $debug['csv_first_row'] = !empty($csv_data) ? $csv_data[0] : null;
+
+        // Find row by date
+        $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'date');
+        $debug['row_found'] = !empty($row);
+
+        if (!$row) {
+            $result['message'] = sprintf(
+                __('No lesson found on or after date %s in CSV', 'elementor-dynamic-redirect'),
+                $target_date
+            );
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        $debug['matched_row'] = $row;
+
+        // Get column for kupa
+        $column = self::get_column_for_kupa($kupa);
+        $debug['column'] = $column;
+        $debug['column_exists'] = $column && isset($row[$column]);
+
+        if (!$column || !isset($row[$column])) {
+            $result['message'] = sprintf(
+                __('Invalid kupa "%s" or missing column "%s" in CSV', 'elementor-dynamic-redirect'),
+                $kupa,
+                $column
+            );
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        // Get redirect URL
         $url = self::get_redirect_url($test_data, $custom_date);
 
         if ($url) {
@@ -221,21 +320,10 @@ class EDR_Redirect {
             $result['url'] = $url;
             $result['message'] = __('Redirect URL generated successfully', 'elementor-dynamic-redirect');
         } else {
-            $result['message'] = __('No redirect URL generated. Check debug log.', 'elementor-dynamic-redirect');
+            $result['message'] = __('No redirect URL generated. Unknown error.', 'elementor-dynamic-redirect');
         }
 
-        // Add debug info
-        $settings = EDR_Core::instance()->get_settings();
-        $target_date = $custom_date ? $custom_date : date('Y-m-d');
-
-        $result['debug'] = array(
-            'payment_method' => self::get_field_value($test_data, $settings['payment_field_id']),
-            'team' => self::get_field_value($test_data, $settings['team_field_id']),
-            'kupa' => self::get_field_value($test_data, $settings['kupa_field_id']),
-            'trigger_value' => $settings['payment_trigger_value'],
-            'test_date' => $target_date,
-        );
-
+        $result['debug'] = $debug;
         return $result;
     }
 }
