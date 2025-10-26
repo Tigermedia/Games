@@ -159,6 +159,7 @@ function edr_activate_plugin() {
         'kupa_field_id' => 'kupa',
         'payment_field_id' => 'payment_method',
         'payment_trigger_value' => 'אשראי',
+        'form_ids' => '',
         'sunday_csv_path' => '',
         'tuesday_csv_path' => '',
         'debug_enabled' => false,

@@ -94,6 +94,23 @@ $settings = EDR_Core::instance()->get_settings();
 
                     <tr>
                         <th scope="row">
+                            <label for="form_ids"><?php esc_html_e('Form IDs (Optional)', 'elementor-dynamic-redirect'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text"
+                                   name="form_ids"
+                                   id="form_ids"
+                                   value="<?php echo esc_attr($settings['form_ids']); ?>"
+                                   class="regular-text"
+                                   placeholder="e.g., form123, form456">
+                            <p class="description">
+                                <?php esc_html_e('Comma-separated list of form IDs to apply this plugin to. Leave empty to apply to all forms.', 'elementor-dynamic-redirect'); ?>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
                             <label for="sunday_csv_path"><?php esc_html_e('Sunday CSV Path', 'elementor-dynamic-redirect'); ?></label>
                         </th>
                         <td>

@@ -117,6 +117,7 @@ class EDR_Admin {
         $sanitized['kupa_field_id'] = sanitize_text_field($input['kupa_field_id']);
         $sanitized['payment_field_id'] = sanitize_text_field($input['payment_field_id']);
         $sanitized['payment_trigger_value'] = sanitize_text_field($input['payment_trigger_value']);
+        $sanitized['form_ids'] = sanitize_text_field($input['form_ids']);
         $sanitized['sunday_csv_path'] = sanitize_text_field($input['sunday_csv_path']);
         $sanitized['tuesday_csv_path'] = sanitize_text_field($input['tuesday_csv_path']);
         $sanitized['debug_enabled'] = isset($input['debug_enabled']) ? true : false;

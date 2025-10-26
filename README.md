@@ -5,6 +5,7 @@ A WordPress plugin that enables conditional form redirects for Elementor Pro bas
 ## Features
 
 - **Conditional Redirects**: Redirect users only when they select specific payment methods (e.g., credit card)
+- **Form ID Filtering**: Apply the plugin to specific forms only or all forms
 - **CSV-Based URLs**: Manage redirect URLs via CSV files for easy updates
 - **Dynamic URL Generation**: Replace placeholders with form data automatically
 - **Multiple Schedule Support**: Different CSV files for different teams/schedules
@@ -36,7 +37,8 @@ A WordPress plugin that enables conditional form redirects for Elementor Pro bas
    - Kupa Field ID (e.g., `kupa`)
    - Payment Method Field ID (e.g., `payment_method`)
 3. Set the payment trigger value (e.g., `אשראי` for credit card)
-4. Save settings
+4. **Optional:** Set specific form IDs (comma-separated) to restrict the plugin to certain forms only. Leave empty to apply to all forms.
+5. Save settings
 
 ### 2. Upload CSV Files
 
@@ -96,12 +98,41 @@ https://payment.com/charge?name=John%20Doe&email=john@example.com&amount=100
 ## How It Works
 
 1. User submits an Elementor form
-2. Plugin checks if payment method matches trigger value (e.g., "אשראי")
-3. If yes, plugin determines which CSV to use based on team field
-4. Plugin finds today's date in the CSV
-5. Plugin selects URL column based on kupa field (link_full or link_partial)
-6. Plugin replaces placeholders with actual form data
-7. User is redirected to the generated URL
+2. Plugin checks if the form ID matches the filter (if specified)
+3. Plugin checks if payment method matches trigger value (e.g., "אשראי")
+4. If yes, plugin determines which CSV to use based on team field
+5. Plugin finds today's date in the CSV
+6. Plugin selects URL column based on kupa field (link_full or link_partial)
+7. Plugin replaces placeholders with actual form data
+8. User is redirected to the generated URL
+
+## Form ID Filtering
+
+You can restrict the plugin to work only with specific Elementor forms by setting form IDs in the settings:
+
+### How to Find Your Form ID
+
+1. Edit your page with Elementor
+2. Select the form widget
+3. Go to **Advanced** tab
+4. Look for **CSS ID** or check the form settings for the form name/ID
+5. Copy this ID to the plugin settings
+
+### Example
+
+If you have two forms with IDs `registration-form` and `contact-form`, and you only want the plugin to work with `registration-form`, enter:
+
+```
+registration-form
+```
+
+For multiple forms, separate with commas:
+
+```
+registration-form, checkout-form, signup-form
+```
+
+**Leave empty to apply to all forms.**
 
 ## Admin Pages
 

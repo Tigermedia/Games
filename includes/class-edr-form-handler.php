@@ -53,6 +53,12 @@ class EDR_Form_Handler {
     public function handle_form_submission($record, $ajax_handler) {
         EDR_Core::log('Form submission detected');
 
+        // Check if form ID filter is enabled
+        if (!$this->should_process_form($record)) {
+            EDR_Core::log('Form ID does not match filter, skipping');
+            return;
+        }
+
         // Extract form data
         $form_data = $this->extract_form_data($record);
 
@@ -81,6 +87,47 @@ class EDR_Form_Handler {
         } else {
             EDR_Core::log('No redirect URL generated, form will submit normally');
         }
+    }
+
+    /**
+     * Check if this form should be processed based on form ID filter
+     *
+     * @param \ElementorPro\Modules\Forms\Classes\Form_Record $record Form record
+     * @return bool True if form should be processed
+     */
+    private function should_process_form($record) {
+        $settings = EDR_Core::instance()->get_settings();
+        $form_ids_setting = trim($settings['form_ids']);
+
+        // If no form IDs specified, process all forms
+        if (empty($form_ids_setting)) {
+            EDR_Core::log('No form ID filter set, processing all forms');
+            return true;
+        }
+
+        // Get current form ID
+        $form_id = $record->get_form_settings('id');
+        $form_name = $record->get_form_settings('form_name');
+
+        EDR_Core::log('Checking form ID filter', array(
+            'form_id' => $form_id,
+            'form_name' => $form_name,
+            'filter' => $form_ids_setting,
+        ));
+
+        // Parse allowed form IDs (comma-separated)
+        $allowed_ids = array_map('trim', explode(',', $form_ids_setting));
+
+        // Check if current form ID or name matches any allowed ID
+        foreach ($allowed_ids as $allowed_id) {
+            if ($form_id === $allowed_id || $form_name === $allowed_id) {
+                EDR_Core::log('Form ID matches filter', $allowed_id);
+                return true;
+            }
+        }
+
+        EDR_Core::log('Form ID does not match any allowed IDs');
+        return false;
     }
 
     /**

@@ -61,6 +61,7 @@ class EDR_Settings {
             'kupa_field_id' => sanitize_text_field($_POST['kupa_field_id']),
             'payment_field_id' => sanitize_text_field($_POST['payment_field_id']),
             'payment_trigger_value' => sanitize_text_field($_POST['payment_trigger_value']),
+            'form_ids' => sanitize_text_field($_POST['form_ids']),
             'sunday_csv_path' => sanitize_text_field($_POST['sunday_csv_path']),
             'tuesday_csv_path' => sanitize_text_field($_POST['tuesday_csv_path']),
             'debug_enabled' => isset($_POST['debug_enabled']) ? true : false,
