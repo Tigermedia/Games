@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.3] - 2025-10-26
+
+### Changed
+- Kupa field logic simplified: "מאוחדת" = partial (link_partial), everything else = full (link_full)
+- Removed requirement for explicit "מלא" or "full" keywords
+- Any value that doesn't contain "מאוחדת" now defaults to full
+
+### Improved
+- More flexible kupa matching - works with any value for "full"
+- Clearer logic that matches business requirements
+
 ## [1.3.2] - 2025-10-26
 
 ### Added

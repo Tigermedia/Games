@@ -143,24 +143,23 @@ class EDR_Redirect {
     /**
      * Get column name based on kupa value
      *
+     * Logic: If kupa contains "מאוחדת" → partial, otherwise → full
+     *
      * @param string $kupa Kupa value
-     * @return string|null Column name
+     * @return string Column name (always returns either link_full or link_partial)
      */
     private static function get_column_for_kupa($kupa) {
         $kupa = trim($kupa);
 
-        // Check for "מלא" (full)
-        if (stripos($kupa, 'מלא') !== false || stripos($kupa, 'full') !== false) {
-            return 'link_full';
-        }
-
-        // Check for "מאוחדת" (united/partial)
+        // Check for "מאוחדת" (united/partial) - if found, use partial
         if (stripos($kupa, 'מאוחדת') !== false || stripos($kupa, 'united') !== false || stripos($kupa, 'partial') !== false) {
+            EDR_Core::log('Kupa matched to partial', $kupa);
             return 'link_partial';
         }
 
-        EDR_Core::log('Could not match kupa to a known column', $kupa);
-        return null;
+        // Everything else (including "מלא", "full", or any other value) → full
+        EDR_Core::log('Kupa matched to full (default)', $kupa);
+        return 'link_full';
     }
 
     /**
