@@ -1,0 +1,200 @@
+/**
+ * Admin Styles
+ *
+ * @package Elementor_Dynamic_Redirect
+ */
+
+.edr-admin-wrap {
+    max-width: 1200px;
+}
+
+.edr-admin-content {
+    background: #fff;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Info Box */
+.edr-info-box {
+    background: #f0f6fc;
+    border-left: 4px solid #0073aa;
+    padding: 15px 20px;
+    margin: 20px 0;
+}
+
+.edr-info-box h2,
+.edr-info-box h3 {
+    margin-top: 0;
+}
+
+.edr-info-box ul {
+    margin-bottom: 0;
+}
+
+.edr-info-box code {
+    background: #fff;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+/* Status Badges */
+.edr-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.edr-status-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.edr-status-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.edr-status-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* CSV Manager */
+.edr-csv-section {
+    margin-bottom: 30px;
+}
+
+.edr-file-info {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 15px 0;
+}
+
+.edr-file-info ul {
+    margin: 10px 0 15px 0;
+    list-style: none;
+    padding-left: 0;
+}
+
+.edr-file-info li {
+    padding: 5px 0;
+}
+
+.edr-file-info code {
+    background: #fff;
+    padding: 2px 6px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Testing Tool */
+.edr-testing-section {
+    margin-bottom: 30px;
+}
+
+#edr-test-result {
+    background: #f9f9f9;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#edr-test-result pre {
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+#edr-test-result details {
+    margin-top: 15px;
+}
+
+#edr-test-result summary {
+    cursor: pointer;
+    padding: 5px 0;
+}
+
+#edr-test-result summary:hover {
+    color: #0073aa;
+}
+
+/* Quick Test Scenarios */
+.edr-scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.edr-scenario-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    transition: box-shadow 0.2s;
+}
+
+.edr-scenario-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edr-scenario-card h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.edr-scenario-card .button {
+    width: 100%;
+}
+
+/* Help Page */
+.edr-help-section {
+    margin-bottom: 30px;
+}
+
+.edr-help-section h3 {
+    margin-top: 20px;
+}
+
+.edr-help-section pre {
+    background: #f5f5f5;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow-x: auto;
+}
+
+.edr-help-section table {
+    margin-top: 10px;
+}
+
+.edr-help-section code {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .edr-scenarios-grid {
+        grid-template-columns: 1fr;
+    }
+}

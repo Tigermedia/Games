@@ -1,0 +1,11 @@
+/**
+ * Frontend Styles
+ *
+ * @package Elementor_Dynamic_Redirect
+ */
+
+/* Minimal frontend styles if needed */
+.edr-processing {
+    opacity: 0.6;
+    pointer-events: none;
+}
