@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-11-03
+
+### Added
+- Static redirect support for series classes (short and long series)
+- 4 new redirect options that bypass CSV logic for series classes:
+  - kupa = מאוחדת + team contains "סדרה קצרה" (short series)
+  - kupa = מאוחדת + team contains "סדרה ארוכה" (long series)
+  - kupa ≠ מאוחדת + team contains "סדרה ארוכה" (long series)
+  - kupa ≠ מאוחדת + team contains "סדרה קצרה" (short series)
+- Each series combination redirects to a specific Sumit payment URL
+- Series detection happens before CSV processing for better performance
+
+### Changed
+- Redirect logic now checks for series classes before attempting CSV lookup
+- Testing tool now includes series detection in debug output
+- Debug output shows redirect_type (series or csv), series_type, and kupa_type
+
+### Improved
+- More flexible redirect system supporting both CSV-based and static redirects
+- Better performance for series classes (no CSV parsing needed)
+- Enhanced testing tool with series-specific debug information
+
 ## [1.3.3] - 2025-10-26
 
 ### Changed

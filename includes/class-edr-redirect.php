@@ -47,6 +47,52 @@ class EDR_Redirect {
             return null;
         }
 
+        // Check for series classes (static redirects, don't use CSV)
+        $is_partial_kupa = (stripos($kupa, 'מאוחדת') !== false);
+
+        // Check for short series (סדרה קצרה)
+        if (stripos($team, 'סדרה קצרה') !== false) {
+            EDR_Core::log('Detected short series (סדרה קצרה)', array(
+                'kupa' => $kupa,
+                'is_partial' => $is_partial_kupa,
+            ));
+
+            if ($is_partial_kupa) {
+                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdnhkh/jdnhki/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            } else {
+                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdhga1/jdhgct/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            $final_url = self::replace_placeholders($url_template, $form_data);
+            EDR_Core::log('Generated series redirect URL', array(
+                'template' => $url_template,
+                'final' => $final_url,
+            ));
+            return $final_url;
+        }
+
+        // Check for long series (סדרה ארוכה)
+        if (stripos($team, 'סדרה ארוכה') !== false) {
+            EDR_Core::log('Detected long series (סדרה ארוכה)', array(
+                'kupa' => $kupa,
+                'is_partial' => $is_partial_kupa,
+            ));
+
+            if ($is_partial_kupa) {
+                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdni0u/jdni0v/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            } else {
+                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdnexa/jdnexb/payment//?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            $final_url = self::replace_placeholders($url_template, $form_data);
+            EDR_Core::log('Generated series redirect URL', array(
+                'template' => $url_template,
+                'final' => $final_url,
+            ));
+            return $final_url;
+        }
+
+        // If not a series, continue with CSV-based redirect logic
         // Determine which CSV to use based on team
         $csv_path = self::get_csv_path_for_team($team, $settings);
         if (!$csv_path) {
@@ -241,6 +287,45 @@ class EDR_Redirect {
             $result['debug'] = $debug;
             return $result;
         }
+
+        // Check for series classes (static redirects that don't need CSV)
+        $is_partial_kupa = (stripos($kupa, 'מאוחדת') !== false);
+        $is_short_series = (stripos($team, 'סדרה קצרה') !== false);
+        $is_long_series = (stripos($team, 'סדרה ארוכה') !== false);
+
+        $debug['is_partial_kupa'] = $is_partial_kupa;
+        $debug['is_short_series'] = $is_short_series;
+        $debug['is_long_series'] = $is_long_series;
+
+        if ($is_short_series || $is_long_series) {
+            $series_type = $is_short_series ? 'short' : 'long';
+            $kupa_type = $is_partial_kupa ? 'partial (מאוחדת)' : 'full';
+
+            $debug['redirect_type'] = 'series';
+            $debug['series_type'] = $series_type;
+            $debug['kupa_type'] = $kupa_type;
+
+            // Get redirect URL (will use series logic)
+            $url = self::get_redirect_url($test_data, $custom_date);
+
+            if ($url) {
+                $result['success'] = true;
+                $result['url'] = $url;
+                $result['message'] = sprintf(
+                    __('Series redirect generated successfully (%s series, %s)', 'elementor-dynamic-redirect'),
+                    $series_type,
+                    $kupa_type
+                );
+            } else {
+                $result['message'] = __('No redirect URL generated for series. Unknown error.', 'elementor-dynamic-redirect');
+            }
+
+            $result['debug'] = $debug;
+            return $result;
+        }
+
+        // Not a series, so continue with CSV-based redirect logic
+        $debug['redirect_type'] = 'csv';
 
         // Get CSV path
         $csv_path = self::get_csv_path_for_team($team, $settings);
