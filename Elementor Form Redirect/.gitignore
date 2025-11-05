@@ -1,0 +1,20 @@
+# Zip files
+*.zip
+
+# Temporary files
+nul
+
+# IDE settings (keep .claude for project settings)
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Sensitive files
+*.key
+*.pem
+gcp-oauth.keys.json
