@@ -1,4 +1,4 @@
-# Pilatis Form Configuration (v1.5.0)
+# Pilatis Form Configuration (v1.6.0)
 
 ## Form Details
 - **Form URL**: https://1.michal-stern.com/join/course3/
@@ -6,7 +6,9 @@
 - **Form Name**: `פילאטיס`
 
 ## Overview
-Version 1.5.0 introduces form-specific redirect logic that applies exclusively to the Pilatis form. This allows different forms to have customized redirect URLs without affecting the existing redirect logic for other forms.
+Version 1.5.0 introduced form-specific redirect logic for the Pilatis form. Version 1.6.0 further refines the plugin so that automated redirects ONLY apply to pilatis01 and girls01 forms - all other forms will not redirect.
+
+The pilatis01 form uses **series-based redirects only** (no CSV redirects). For details on the girls01 form which uses both series and CSV redirects, see [GIRLS01-FORM-CONFIG.md](GIRLS01-FORM-CONFIG.md).
 
 ## Redirect Conditions
 

@@ -60,52 +60,20 @@ class EDR_Redirect {
             return $final_url;
         }
 
-        // Check for series classes (static redirects, don't use CSV)
-        $is_partial_kupa = (stripos($kupa, 'מאוחדת') !== false);
+        // CSV-based redirect logic (only for girls01 form)
+        // Get form identification
+        $form_id = isset($form_data['_form_id']) ? $form_data['_form_id'] : '';
+        $form_name = isset($form_data['_form_name']) ? $form_data['_form_name'] : '';
 
-        // Check for short series (סדרה קצרה)
-        if (stripos($team, 'סדרה קצרה') !== false) {
-            EDR_Core::log('Detected short series (סדרה קצרה)', array(
-                'kupa' => $kupa,
-                'is_partial' => $is_partial_kupa,
+        // CSV redirects are only for girls01 form
+        if ($form_id !== 'girls01' && $form_name !== 'נערות') {
+            EDR_Core::log('CSV redirects only available for girls01 form', array(
+                'form_id' => $form_id,
+                'form_name' => $form_name,
             ));
-
-            if ($is_partial_kupa) {
-                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdnhkh/jdnhki/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-            } else {
-                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdhga1/jdhgct/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-            }
-
-            $final_url = self::replace_placeholders($url_template, $form_data);
-            EDR_Core::log('Generated series redirect URL', array(
-                'template' => $url_template,
-                'final' => $final_url,
-            ));
-            return $final_url;
+            return null;
         }
 
-        // Check for long series (סדרה ארוכה)
-        if (stripos($team, 'סדרה ארוכה') !== false) {
-            EDR_Core::log('Detected long series (סדרה ארוכה)', array(
-                'kupa' => $kupa,
-                'is_partial' => $is_partial_kupa,
-            ));
-
-            if ($is_partial_kupa) {
-                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdni0u/jdni0v/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-            } else {
-                $url_template = 'https://pay.sumit.co.il/e5bzq5/jdnexa/jdnexb/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-            }
-
-            $final_url = self::replace_placeholders($url_template, $form_data);
-            EDR_Core::log('Generated series redirect URL', array(
-                'template' => $url_template,
-                'final' => $final_url,
-            ));
-            return $final_url;
-        }
-
-        // If not a series, continue with CSV-based redirect logic
         // Determine which CSV to use based on team
         $csv_path = self::get_csv_path_for_team($team, $settings);
         if (!$csv_path) {
@@ -340,6 +308,18 @@ class EDR_Redirect {
         // Not a series, so continue with CSV-based redirect logic
         $debug['redirect_type'] = 'csv';
 
+        // CSV redirects only for girls01 form
+        $form_id = isset($test_data['_form_id']) ? $test_data['_form_id'] : '';
+        $form_name = isset($test_data['_form_name']) ? $test_data['_form_name'] : '';
+        $debug['form_id'] = $form_id;
+        $debug['form_name'] = $form_name;
+
+        if ($form_id !== 'girls01' && $form_name !== 'נערות') {
+            $result['message'] = __('CSV redirects are only available for girls01 (נערות) form', 'elementor-dynamic-redirect');
+            $result['debug'] = $debug;
+            return $result;
+        }
+
         // Get CSV path
         $csv_path = self::get_csv_path_for_team($team, $settings);
         $debug['csv_path'] = $csv_path;
@@ -481,6 +461,44 @@ class EDR_Redirect {
             }
 
             EDR_Core::log('Pilatis form detected but no conditions matched');
+        }
+
+        // Girls01 form (נערות) - series redirects
+        if ($form_id === 'girls01' || $form_name === 'נערות') {
+            $is_partial = (stripos($kupa, 'מאוחדת') !== false);
+            $is_short = (stripos($team, 'סדרה קצרה') !== false);
+            $is_long = (stripos($team, 'סדרה ארוכה') !== false);
+
+            EDR_Core::log('Girls01 form detected', array(
+                'is_partial' => $is_partial,
+                'is_short' => $is_short,
+                'is_long' => $is_long,
+            ));
+
+            // Check for short series (סדרה קצרה)
+            if ($is_short) {
+                EDR_Core::log('Girls01: Detected short series (סדרה קצרה)');
+
+                if ($is_partial) {
+                    return 'https://pay.sumit.co.il/e5bzq5/jdnhkh/jdnhki/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                } else {
+                    return 'https://pay.sumit.co.il/e5bzq5/jdhga1/jdhgct/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                }
+            }
+
+            // Check for long series (סדרה ארוכה)
+            if ($is_long) {
+                EDR_Core::log('Girls01: Detected long series (סדרה ארוכה)');
+
+                if ($is_partial) {
+                    return 'https://pay.sumit.co.il/e5bzq5/jdni0u/jdni0v/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                } else {
+                    return 'https://pay.sumit.co.il/e5bzq5/jdnexa/jdnexb/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                }
+            }
+
+            // If girls01 but not a series, will continue to CSV logic
+            EDR_Core::log('Girls01 form detected but no series match - will check CSV redirects');
         }
 
         // No form-specific redirect found
