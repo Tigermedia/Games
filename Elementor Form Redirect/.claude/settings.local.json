@@ -1,25 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(code --locate-extension Anthropic.claude-code)",
-      "mcp__mcp-playwright__*",
-      "mcp__mcp-playwright__browser_navigate",
-      "mcp__mcp-playwright__browser_click",
-      "mcp__mcp-playwright__browser_type",
-      "mcp__mcp-playwright__browser_select_option",
-      "mcp__mcp-playwright__browser_wait_for",
-      "mcp__mcp-playwright__browser_fill_form",
-      "mcp__mcp-playwright__browser_snapshot",
-      "Bash(git add:*)",
-      "Bash(git rm:*)",
-      "Bash(git commit:*)",
-      "Bash(gh:*)",
-      "Bash(git remote add:*)",
-      "Bash(git fetch:*)",
-      "Bash(git remote set-url:*)",
-      "Bash(git checkout:*)"
-    ],
-    "deny": [],
-    "ask": []
+      "*"
+    ]
+  },
+  "mcpServers": {
+    "mcp-playwright": {
+      "autoApprovePatterns": [
+        ".*"
+      ]
+    }
   }
 }

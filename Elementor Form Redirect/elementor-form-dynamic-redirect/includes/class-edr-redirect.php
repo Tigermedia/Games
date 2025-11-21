@@ -65,9 +65,9 @@ class EDR_Redirect {
         $form_id = isset($form_data['_form_id']) ? $form_data['_form_id'] : '';
         $form_name = isset($form_data['_form_name']) ? $form_data['_form_name'] : '';
 
-        // CSV redirects are only for girls01 form
-        if ($form_id !== 'girls01' && $form_name !== 'נערות') {
-            EDR_Core::log('CSV redirects only available for girls01 form', array(
+        // CSV redirects are only for girls01 form (check by name since ID may vary)
+        if ($form_name !== 'נערות') {
+            EDR_Core::log('CSV redirects only available for girls01 (נערות) form', array(
                 'form_id' => $form_id,
                 'form_name' => $form_name,
             ));
@@ -91,19 +91,25 @@ class EDR_Redirect {
         // Use custom date if provided, otherwise use today's date
         $target_date = $custom_date ? $custom_date : date('Y-m-d');
 
-        // Find matching row by date
+        // Find matching row by date (try both 'date' and 'תאריך' columns)
         $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'date');
+        if (!$row) {
+            // Try Hebrew column name
+            $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'תאריך ');
+        }
+
         if (!$row) {
             EDR_Core::log('No matching row found for date', $target_date);
             return null;
         }
 
         // Determine which column to use based on kupa
-        $column = self::get_column_for_kupa($kupa);
+        $column = self::get_column_for_kupa($kupa, $row);
         if (!$column || !isset($row[$column])) {
             EDR_Core::log('Invalid kupa or missing column', array(
                 'kupa' => $kupa,
                 'column' => $column,
+                'available_columns' => array_keys($row),
             ));
             return null;
         }
@@ -171,21 +177,33 @@ class EDR_Redirect {
      * Get column name based on kupa value
      *
      * Logic: If kupa contains "מאוחדת" → partial, otherwise → full
+     * Supports both English and Hebrew column names
      *
      * @param string $kupa Kupa value
-     * @return string Column name (always returns either link_full or link_partial)
+     * @param array $row CSV row to check available columns
+     * @return string Column name
      */
-    private static function get_column_for_kupa($kupa) {
+    private static function get_column_for_kupa($kupa, $row = array()) {
         $kupa = trim($kupa);
 
         // Check for "מאוחדת" (united/partial) - if found, use partial
         if (stripos($kupa, 'מאוחדת') !== false || stripos($kupa, 'united') !== false || stripos($kupa, 'partial') !== false) {
             EDR_Core::log('Kupa matched to partial', $kupa);
+
+            // Try Hebrew column name first, then English
+            if (!empty($row) && isset($row['Link מאוחדת '])) {
+                return 'Link מאוחדת ';
+            }
             return 'link_partial';
         }
 
         // Everything else (including "מלא", "full", or any other value) → full
         EDR_Core::log('Kupa matched to full (default)', $kupa);
+
+        // Try Hebrew column name first, then English
+        if (!empty($row) && isset($row['Link מחיר מלא '])) {
+            return 'Link מחיר מלא ';
+        }
         return 'link_full';
     }
 
@@ -308,13 +326,13 @@ class EDR_Redirect {
         // Not a series, so continue with CSV-based redirect logic
         $debug['redirect_type'] = 'csv';
 
-        // CSV redirects only for girls01 form
+        // CSV redirects only for girls01 form (check by name since ID may vary)
         $form_id = isset($test_data['_form_id']) ? $test_data['_form_id'] : '';
         $form_name = isset($test_data['_form_name']) ? $test_data['_form_name'] : '';
         $debug['form_id'] = $form_id;
         $debug['form_name'] = $form_name;
 
-        if ($form_id !== 'girls01' && $form_name !== 'נערות') {
+        if ($form_name !== 'נערות') {
             $result['message'] = __('CSV redirects are only available for girls01 (נערות) form', 'elementor-dynamic-redirect');
             $result['debug'] = $debug;
             return $result;
@@ -323,7 +341,11 @@ class EDR_Redirect {
         // Get CSV path
         $csv_path = self::get_csv_path_for_team($team, $settings);
         $debug['csv_path'] = $csv_path;
-        $debug['csv_exists'] = $csv_path ? file_exists($csv_path) : false;
+
+        // Check if path is URL or file
+        $is_url = (strpos($csv_path, 'http://') === 0 || strpos($csv_path, 'https://') === 0);
+        $debug['csv_is_url'] = $is_url;
+        $debug['csv_exists'] = $csv_path ? ($is_url ? true : file_exists($csv_path)) : false;
 
         if (!$csv_path) {
             $result['message'] = sprintf(
@@ -336,7 +358,8 @@ class EDR_Redirect {
             return $result;
         }
 
-        if (!file_exists($csv_path)) {
+        // Only check file_exists for local paths, not URLs
+        if (!$is_url && !file_exists($csv_path)) {
             $result['message'] = sprintf(
                 __('CSV file not found: %s', 'elementor-dynamic-redirect'),
                 $csv_path
@@ -359,8 +382,12 @@ class EDR_Redirect {
         $debug['csv_rows'] = count($csv_data);
         $debug['csv_first_row'] = !empty($csv_data) ? $csv_data[0] : null;
 
-        // Find row by date
+        // Find row by date (try both 'date' and 'תאריך' columns)
         $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'date');
+        if (!$row) {
+            // Try Hebrew column name
+            $row = EDR_CSV_Handler::find_row_by_date($csv_data, $target_date, 'תאריך ');
+        }
         $debug['row_found'] = !empty($row);
 
         if (!$row) {
@@ -375,7 +402,7 @@ class EDR_Redirect {
         $debug['matched_row'] = $row;
 
         // Get column for kupa
-        $column = self::get_column_for_kupa($kupa);
+        $column = self::get_column_for_kupa($kupa, $row);
         $debug['column'] = $column;
         $debug['column_exists'] = $column && isset($row[$column]);
 
@@ -429,76 +456,127 @@ class EDR_Redirect {
             $is_partial = (stripos($kupa, 'מאוחדת') !== false);
             $is_short = (stripos($team, 'סדרה קצרה') !== false);
             $is_long = (stripos($team, 'סדרה ארוכה') !== false);
+            $is_other = (stripos($team, 'אחר') === 0); // Starts with "אחר"
+
+            // Get selected Sumit account from settings
+            $settings = EDR_Core::instance()->get_settings();
+            $sumit_account = isset($settings['pilatis_sumit_account']) ? $settings['pilatis_sumit_account'] : 'stern_sports';
 
             EDR_Core::log('Pilatis form detected', array(
                 'is_partial' => $is_partial,
                 'is_short' => $is_short,
                 'is_long' => $is_long,
+                'is_other' => $is_other,
+                'sumit_account' => $sumit_account,
             ));
 
-            // Condition 1: מאוחדת + סדרה קצרה
+            // Define URL mappings for each account
+            $url_maps = array(
+                'stern_sports' => array(
+                    'base' => 'e5bzq5',
+                    'other_any' => 'juakea/juaky6',
+                    'short_partial' => 'jdnhkh/c',
+                    'long_partial' => 'jdni0u/c',
+                    'long_full' => 'jdnexa/c',
+                    'short_full' => 'jdhga1/c',
+                ),
+                'stern_fitness' => array(
+                    'base' => '4kpof9',
+                    'other_any' => 'k170s1/k175aq',
+                    'short_partial' => 'k0v3ws/c',
+                    'long_partial' => 'k0v1tn/c',
+                    'long_full' => 'k0urkd/c',
+                    'short_full' => 'k0v3ld/c',
+                ),
+            );
+
+            // Get URLs for selected account
+            $urls = $url_maps[$sumit_account];
+            $base = $urls['base'];
+
+            // Condition 00: team starts with "אחר" (any kupa) - CHECKED FIRST
+            if ($is_other) {
+                EDR_Core::log('Pilatis: Condition 00 matched (אחר)');
+                return 'https://pay.sumit.co.il/' . $base . '/' . $urls['other_any'] . '/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            // Condition 01: kupa is "מאוחדת" AND team contains "סדרה קצרה"
             if ($is_partial && $is_short) {
-                EDR_Core::log('Pilatis: Condition 1 matched (מאוחדת + סדרה קצרה)');
-                return 'https://pay.sumit.co.il/e5bzq5/jdnhkh/c/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                EDR_Core::log('Pilatis: Condition 01 matched (מאוחדת + סדרה קצרה)');
+                return 'https://pay.sumit.co.il/' . $base . '/' . $urls['short_partial'] . '/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
-            // Condition 2: מאוחדת + סדרה ארוכה
+            // Condition 02: kupa is "מאוחדת" AND team contains "סדרה ארוכה"
             if ($is_partial && $is_long) {
-                EDR_Core::log('Pilatis: Condition 2 matched (מאוחדת + סדרה ארוכה)');
-                return 'https://pay.sumit.co.il/e5bzq5/jdni0u/c/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                EDR_Core::log('Pilatis: Condition 02 matched (מאוחדת + סדרה ארוכה)');
+                return 'https://pay.sumit.co.il/' . $base . '/' . $urls['long_partial'] . '/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
-            // Condition 3: NOT מאוחדת + סדרה ארוכה
+            // Condition 03: kupa is NOT "מאוחדת" AND team contains "סדרה ארוכה"
             if (!$is_partial && $is_long) {
-                EDR_Core::log('Pilatis: Condition 3 matched (NOT מאוחדת + סדרה ארוכה)');
-                return 'https://pay.sumit.co.il/e5bzq5/jdnexa/c/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                EDR_Core::log('Pilatis: Condition 03 matched (NOT מאוחדת + סדרה ארוכה)');
+                return 'https://pay.sumit.co.il/' . $base . '/' . $urls['long_full'] . '/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
-            // Condition 4: NOT מאוחדת + סדרה קצרה
+            // Condition 04: kupa is NOT "מאוחדת" AND team contains "סדרה קצרה"
             if (!$is_partial && $is_short) {
-                EDR_Core::log('Pilatis: Condition 4 matched (NOT מאוחדת + סדרה קצרה)');
-                return 'https://pay.sumit.co.il/e5bzq5/jdhga1/c/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+                EDR_Core::log('Pilatis: Condition 04 matched (NOT מאוחדת + סדרה קצרה)');
+                return 'https://pay.sumit.co.il/' . $base . '/' . $urls['short_full'] . '/payment/?additems=1&name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
             EDR_Core::log('Pilatis form detected but no conditions matched');
         }
 
-        // Girls01 form (נערות) - series redirects
+        // Girls01 form (נערות) - CSV redirects
         if ($form_id === 'girls01' || $form_name === 'נערות') {
-            $is_partial = (stripos($kupa, 'מאוחדת') !== false);
-            $is_short = (stripos($team, 'סדרה קצרה') !== false);
-            $is_long = (stripos($team, 'סדרה ארוכה') !== false);
+            EDR_Core::log('Girls01 form detected - proceeding to CSV redirect logic');
+            // No specific series logic here anymore, falls through to CSV logic below
+        }
 
-            EDR_Core::log('Girls01 form detected', array(
+        // Hazaka form (hazaka) - specific redirects
+        // Check both form_id and form_name to be more flexible (including Hebrew "חזקה")
+        if ($form_id === 'hazaka' || $form_name === 'hazaka' ||
+            stripos($form_id, 'hazaka') !== false || stripos($form_name, 'hazaka') !== false ||
+            stripos($form_name, 'חזקה') !== false) {
+            $is_partial = (stripos($kupa, 'מאוחדת') !== false);
+            $is_evening = (stripos($team, 'ערב') !== false);
+            $is_morning = (stripos($team, 'בוקר') !== false);
+
+            EDR_Core::log('Hazaka form detected', array(
+                'form_id' => $form_id,
+                'form_name' => $form_name,
                 'is_partial' => $is_partial,
-                'is_short' => $is_short,
-                'is_long' => $is_long,
+                'is_evening' => $is_evening,
+                'is_morning' => $is_morning,
+                'team' => $team,
+                'kupa' => $kupa,
             ));
 
-            // Check for short series (סדרה קצרה)
-            if ($is_short) {
-                EDR_Core::log('Girls01: Detected short series (סדרה קצרה)');
-
-                if ($is_partial) {
-                    return 'https://pay.sumit.co.il/e5bzq5/jdnhkh/jdnhki/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-                } else {
-                    return 'https://pay.sumit.co.il/e5bzq5/jdhga1/jdhgct/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-                }
+            // Condition 01: team is "ערב" AND kupa is NOT "מאוחדת"
+            if ($is_evening && !$is_partial) {
+                EDR_Core::log('Hazaka: Condition 01 matched (ערב + NOT מאוחדת)');
+                return 'https://pay.sumit.co.il/e5bzq5/jd8qad/jd8qae/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
-            // Check for long series (סדרה ארוכה)
-            if ($is_long) {
-                EDR_Core::log('Girls01: Detected long series (סדרה ארוכה)');
-
-                if ($is_partial) {
-                    return 'https://pay.sumit.co.il/e5bzq5/jdni0u/jdni0v/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-                } else {
-                    return 'https://pay.sumit.co.il/e5bzq5/jdnexa/jdnexb/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
-                }
+            // Condition 02: team is "ערב" AND kupa is "מאוחדת"
+            if ($is_evening && $is_partial) {
+                EDR_Core::log('Hazaka: Condition 02 matched (ערב + מאוחדת)');
+                return 'https://pay.sumit.co.il/e5bzq5/jswwda/jswwdc/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
             }
 
-            // If girls01 but not a series, will continue to CSV logic
-            EDR_Core::log('Girls01 form detected but no series match - will check CSV redirects');
+            // Condition 03: team is "בוקר" AND kupa is NOT "מאוחדת"
+            if ($is_morning && !$is_partial) {
+                EDR_Core::log('Hazaka: Condition 03 matched (בוקר + NOT מאוחדת)');
+                return 'https://pay.sumit.co.il/e5bzq5/jszwxe/jszyda/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            // Condition 04: team is "בוקר" AND kupa is "מאוחדת"
+            if ($is_morning && $is_partial) {
+                EDR_Core::log('Hazaka: Condition 04 matched (בוקר + מאוחדת)');
+                return 'https://pay.sumit.co.il/e5bzq5/jszy01/jszzqt/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            EDR_Core::log('Hazaka form detected but no conditions matched');
         }
 
         // No form-specific redirect found

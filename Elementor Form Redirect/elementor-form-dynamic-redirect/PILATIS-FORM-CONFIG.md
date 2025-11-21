@@ -1,4 +1,4 @@
-# Pilatis Form Configuration (v1.6.0)
+# Pilatis Form Configuration (v1.7.0)
 
 ## Form Details
 - **Form URL**: https://1.michal-stern.com/join/course3/
@@ -6,153 +6,221 @@
 - **Form Name**: `פילאטיס`
 
 ## Overview
-Version 1.5.0 introduced form-specific redirect logic for the Pilatis form. Version 1.6.0 further refines the plugin so that automated redirects ONLY apply to pilatis01 and girls01 forms - all other forms will not redirect.
+Version 1.7.0 introduces **Sumit Account Selection** for the Pilatis form. You can now choose between two Sumit accounts in the plugin admin, and the redirect URLs will automatically adjust based on your selection.
 
 The pilatis01 form uses **series-based redirects only** (no CSV redirects). For details on the girls01 form which uses both series and CSV redirects, see [GIRLS01-FORM-CONFIG.md](GIRLS01-FORM-CONFIG.md).
 
+## Sumit Account Selection
+
+Navigate to **Form Redirect → Sumit Accounts** in WordPress admin to select which account to use:
+
+### Account 1: שטרן - חוגים לספורט (stern_sports)
+- **Base ID**: `e5bzq5`
+- **Default account** (maintains backward compatibility)
+
+### Account 2: שטרן - כושר לנשים ונערות (stern_fitness)
+- **Base ID**: `4kpof9`
+- **Alternative account** with different payment URLs
+
 ## Redirect Conditions
 
-The plugin checks for 4 conditions based on the combination of:
+The plugin checks for **5 conditions** based on the combination of:
 - **Kupa field**: מאוחדת (partial subsidy) vs. other (full subsidy)
-- **Team field**: סדרה קצרה (short series) vs. סדרה ארוכה (long series)
+- **Team field**: סדרה קצרה (short series), סדרה ארוכה (long series), or אחר (other)
 - **Payment method**: Must be אשראי (credit card)
 
-### Condition 1: מאוחדת + סדרה קצרה
+**Note**: Conditions are checked in order (00, 01, 02, 03, 04). The first matching condition determines the redirect URL.
+
+### Condition 00: אחר (Other) - CHECKED FIRST
+**When:**
+- Team starts with "אחר"
+- Payment method is "אשראי"
+- (Kupa field is not checked for this condition)
+
+**Redirect URLs:**
+- **Account 1 (stern_sports)**: `https://pay.sumit.co.il/e5bzq5/juakea/juaky6/payment/?name=...`
+- **Account 2 (stern_fitness)**: `https://pay.sumit.co.il/4kpof9/k170s1/k175aq/payment/?name=...`
+
+### Condition 01: מאוחדת + סדרה קצרה
 **When:**
 - Kupa contains "מאוחדת"
 - Team contains "סדרה קצרה"
 - Payment method is "אשראי"
 
-**Redirect URL:**
-```
-https://pay.sumit.co.il/e5bzq5/jdnhkh/c/payment/?additems=1&name=[first_name] [last_name]&emailaddress=[email]&phone=[parents_phone]&companynumber=[id_number]
-```
+**Redirect URLs:**
+- **Account 1 (stern_sports)**: `https://pay.sumit.co.il/e5bzq5/jdnhkh/c/payment/?additems=1&name=...`
+- **Account 2 (stern_fitness)**: `https://pay.sumit.co.il/4kpof9/k0v3ws/c/payment/?additems=1&name=...`
 
-### Condition 2: מאוחדת + סדרה ארוכה
+### Condition 02: מאוחדת + סדרה ארוכה
 **When:**
 - Kupa contains "מאוחדת"
 - Team contains "סדרה ארוכה"
 - Payment method is "אשראי"
 
-**Redirect URL:**
-```
-https://pay.sumit.co.il/e5bzq5/jdni0u/c/payment/?additems=1&name=[first_name] [last_name]&emailaddress=[email]&phone=[parents_phone]&companynumber=[id_number]
-```
+**Redirect URLs:**
+- **Account 1 (stern_sports)**: `https://pay.sumit.co.il/e5bzq5/jdni0u/c/payment/?additems=1&name=...`
+- **Account 2 (stern_fitness)**: `https://pay.sumit.co.il/4kpof9/k0v1tn/c/payment/?additems=1&name=...`
 
-### Condition 3: NOT מאוחדת + סדרה ארוכה
+### Condition 03: NOT מאוחדת + סדרה ארוכה
 **When:**
 - Kupa does NOT contain "מאוחדת"
 - Team contains "סדרה ארוכה"
 - Payment method is "אשראי"
 
-**Redirect URL:**
-```
-https://pay.sumit.co.il/e5bzq5/jdnexa/c/payment/?additems=1&name=[first_name] [last_name]&emailaddress=[email]&phone=[parents_phone]&companynumber=[id_number]
-```
+**Redirect URLs:**
+- **Account 1 (stern_sports)**: `https://pay.sumit.co.il/e5bzq5/jdnexa/c/payment/?additems=1&name=...`
+- **Account 2 (stern_fitness)**: `https://pay.sumit.co.il/4kpof9/k0urkd/c/payment/?additems=1&name=...`
 
-### Condition 4: NOT מאוחדת + סדרה קצרה
+### Condition 04: NOT מאוחדת + סדרה קצרה
 **When:**
 - Kupa does NOT contain "מאוחדת"
 - Team contains "סדרה קצרה"
 - Payment method is "אשראי"
 
-**Redirect URL:**
+**Redirect URLs:**
+- **Account 1 (stern_sports)**: `https://pay.sumit.co.il/e5bzq5/jdhga1/c/payment/?additems=1&name=...`
+- **Account 2 (stern_fitness)**: `https://pay.sumit.co.il/4kpof9/k0v3ld/c/payment/?additems=1&name=...`
+
+## URL Parameters
+
+All redirect URLs include these placeholders (automatically replaced with form data):
 ```
-https://pay.sumit.co.il/e5bzq5/jdhga1/c/payment/?additems=1&name=[first_name] [last_name]&emailaddress=[email]&phone=[parents_phone]&companynumber=[id_number]
+?name=[field id="first_name"]%20[field id="last_name"]
+&emailaddress=[field id="email"]
+&phone=[field id="parents_phone"]
+&companynumber=[field id="id_number"]
 ```
 
-## Key Differences from Default Series Redirects
+Series conditions (01-04) also include: `?additems=1`
 
-1. **Path Structure**: Uses `/c/payment/` instead of `/xxx/payment/`
-2. **Additional Parameter**: Includes `additems=1` parameter
-3. **Form-Specific**: Only applies to pilatis01 form
-4. **Priority**: Form-specific redirects are checked BEFORE general series redirects
+## Key Features
+
+1. **Sumit Account Selector**: Choose between two accounts in admin
+2. **Backward Compatible**: Defaults to Account 1 (stern_sports)
+3. **Same Logic, Different URLs**: All conditions remain the same; only URLs change
+4. **Form-Specific**: Only applies to pilatis01 form
+5. **Priority Order**: Checks "אחר" first, then kupa/series combinations
 
 ## Implementation Details
 
-### Files Modified
+### Files Created in v1.7.0
 
-#### 1. `includes/class-edr-form-handler.php` (lines 142-144)
-Added form identification to form data:
+#### 1. `admin/class-edr-sumit-accounts.php`
+New admin component for managing Sumit account selection:
+- Handles form submission
+- Validates account selection (only allows 'stern_sports' or 'stern_fitness')
+- Saves setting to WordPress options
+
+#### 2. `admin/views/sumit-accounts-page.php`
+Admin page UI with:
+- Radio buttons for account selection
+- Condition reference table
+- Help text and descriptions
+
+### Files Modified in v1.7.0
+
+#### 1. `includes/class-edr-core.php`
+Added new setting default:
 ```php
-// Add form identification metadata
-$form_data['_form_id'] = $record->get_form_settings('id');
-$form_data['_form_name'] = $record->get_form_settings('form_name');
+'pilatis_sumit_account' => 'stern_sports', // Default: שטרן - חוגים לספורט
 ```
 
-#### 2. `includes/class-edr-redirect.php` (lines 50-61)
-Added form-specific redirect check before general series logic:
+#### 2. `admin/class-edr-admin.php`
+- Registered new submenu: "Sumit Accounts"
+- Initialized EDR_Sumit_Accounts component
+- Added render method for Sumit Accounts page
+
+#### 3. `elementor-dynamic-redirect.php`
+Required new admin class file:
 ```php
-// Check for form-specific redirects first (highest priority)
-$form_redirect = self::get_form_specific_redirect($form_data, $team, $kupa);
-if ($form_redirect) {
-    $final_url = self::replace_placeholders($form_redirect, $form_data);
-    EDR_Core::log('Generated form-specific redirect URL', ...);
-    return $final_url;
-}
+require_once EDR_PLUGIN_DIR . 'admin/class-edr-sumit-accounts.php';
 ```
 
-#### 3. `includes/class-edr-redirect.php` (lines 427-488)
-Added new method `get_form_specific_redirect()` that:
-- Identifies the form by ID or name
-- Checks all 4 conditions
-- Returns appropriate redirect URL template
-- Logs detailed information for debugging
+#### 4. `includes/class-edr-redirect.php` (lines 454-528)
+Completely rewrote Pilatis redirect logic:
+- Retrieves selected account from settings
+- Defines URL mapping arrays for both accounts
+- Dynamically builds URLs based on selected account
+- Reordered conditions: "אחר" checked first (condition 00)
+- Added condition 04 (NOT מאוחדת + סדרה קצרה)
 
 ## Redirect Priority Order
 
 1. ✅ **Payment method check** - Must match trigger value (אשראי)
-2. ✅ **Form-specific redirects** - NEW in v1.5.0 (pilatis01 only)
-3. ✅ **General series redirects** - Existing logic (סדרה קצרה/ארוכה)
-4. ✅ **CSV-based redirects** - Default fallback
+2. ✅ **Form-specific redirects** - Pilatis01 only
+3. ✅ **Account-based URLs** - Dynamic based on admin selection
+4. ✅ **Condition priority** - 00 → 01 → 02 → 03 → 04
 
 ## Backward Compatibility
 
 ✅ **Fully backward compatible**
-- Existing forms continue to use general series/CSV redirects
-- Form-specific logic only runs for matching form ID/name
-- Falls through to existing logic if no form-specific match
-
-## Adding More Form-Specific Redirects
-
-To add redirects for another form, modify `get_form_specific_redirect()` method in `class-edr-redirect.php`:
-
-```php
-// Add after the pilatis01 block, before "return null;"
-
-// Example: Another form
-if ($form_id === 'another_form_id' || $form_name === 'Another Form Name') {
-    // Add your conditions here
-    if ($condition1) {
-        return 'your_url_template_here';
-    }
-    // ... more conditions
-}
-```
+- Default setting is 'stern_sports' (Account 1)
+- Existing URLs unchanged when using default account
+- No database migration required
+- Falls back to stern_sports if setting not found
 
 ## Testing
 
-To test the pilatis01 form redirects:
+### Setting Up
+1. Navigate to **Form Redirect → Sumit Accounts** in WordPress admin
+2. Select desired Sumit account
+3. Click "Save Sumit Account"
 
+### Testing Redirects
 1. Navigate to form: https://1.michal-stern.com/join/course3/
 2. Fill in required fields
-3. Select different combinations of:
-   - Kupa: מאוחדת or other
-   - Team: סדרה קצרה or סדרה ארוכה
-   - Payment: אשראי
-4. Verify redirect URL matches expected condition
+3. Test each condition with **both accounts**:
+   - **Condition 00**: Team = "אחר..." → jua kea/juaky6 (Account 1) or k170s1/k175aq (Account 2)
+   - **Condition 01**: Kupa = "מאוחדת" AND Team = "סדרה קצרה" → jdnhkh (Account 1) or k0v3ws (Account 2)
+   - **Condition 02**: Kupa = "מאוחדת" AND Team = "סדרה ארוכה" → jdni0u (Account 1) or k0v1tn (Account 2)
+   - **Condition 03**: Kupa ≠ "מאוחדת" AND Team = "סדרה ארוכה" → jdnexa (Account 1) or k0urkd (Account 2)
+   - **Condition 04**: Kupa ≠ "מאוחדת" AND Team = "סדרה קצרה" → jdhga1 (Account 1) or k0v3ld (Account 2)
+4. Payment method must be "אשראי" for all conditions
+5. Switch account in admin and verify URLs change accordingly
+
+### Using Testing Tool
+In WordPress admin → Dynamic Redirect → Testing Tool:
+
+1. Add form identification:
+   ```
+   _form_id: pilatis01
+   _form_name: פילאטיס
+   ```
+2. Set team, kupa, payment values
+3. Click "Test Redirect"
+4. Review debug output showing:
+   - Selected Sumit account
+   - Condition detection (is_partial, is_short, is_long, is_other)
+   - Which condition matched
+   - Final URL with correct account base
 
 ## Debug Logging
 
 Enable debug mode in plugin settings to see detailed logs:
 - Form identification (ID and name)
-- Condition checks (is_partial, is_short, is_long)
+- Selected Sumit account (stern_sports or stern_fitness)
+- Condition checks (is_partial, is_short, is_long, is_other)
 - Which condition matched
 - Generated URL template
 - Final URL after placeholder replacement
 
 Look for log entries:
 - "Checking form-specific redirects"
-- "Pilatis form detected"
-- "Pilatis: Condition X matched"
+- "Pilatis form detected" (includes sumit_account value)
+- "Pilatis: Condition 00 matched" (for אחר)
+- "Pilatis: Condition 01 matched" (for מאוחדת + סדרה קצרה)
+- "Pilatis: Condition 02 matched" (for מאוחדת + סדרה ארוכה)
+- "Pilatis: Condition 03 matched" (for NOT מאוחדת + סדרה ארוכה)
+- "Pilatis: Condition 04 matched" (for NOT מאוחדת + סדרה קצרה)
 - "Generated form-specific redirect URL"
+
+## Summary
+
+**v1.7.0 Changes:**
+- ✅ Added Sumit Account selector in admin
+- ✅ Support for 2 accounts with different payment URLs
+- ✅ Same redirect logic for both accounts
+- ✅ Reordered conditions: "אחר" checked first
+- ✅ Added condition 04 for completeness
+- ✅ Fully backward compatible (defaults to Account 1)
+- ✅ Comprehensive admin UI and documentation
