@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(tree:*)",
+      "Bash(npm install:*)",
+      "Bash(npx convex dev:*)",
+      "Bash(set:*)",
+      "Bash(npx convex deploy:*)",
+      "Bash(eyJ2MiI6ImY0MGE0YzVjZjI0ZTQyZjk5ZGM4MGJkNmRiYjQzODQyIn0=)",
+      "Bash(npm run build:*)",
+      "Bash(npx vercel deploy:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
