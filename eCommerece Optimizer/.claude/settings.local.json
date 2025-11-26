@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx shadcn@latest init -d)",
+      "Bash(npx shadcn@latest add button card input label form dialog sheet sidebar separator avatar dropdown-menu -y)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npx convex:*)",
+      "Bash(CONVEX_DEPLOYMENT=\"dev:agreeable-koala-989|eyJ2MiI6ImYwOTE3YzFmZWRhNTQxZGM5YTcyMjJhZTAzYThkMjEzIn0=\" npx convex dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 10 npm run dev:frontend:*)",
+      "Bash(timeout 15 npm run dev:frontend:*)",
+      "Bash(npm run dev:frontend:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
