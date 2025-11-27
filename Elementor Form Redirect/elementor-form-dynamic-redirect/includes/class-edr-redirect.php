@@ -529,8 +529,24 @@ class EDR_Redirect {
 
         // Girls01 form (נערות) - CSV redirects
         if ($form_id === 'girls01' || $form_name === 'נערות') {
-            EDR_Core::log('Girls01 form detected - proceeding to CSV redirect logic');
-            // No specific series logic here anymore, falls through to CSV logic below
+            $is_other = (stripos($team, 'אחר') === 0); // Starts with "אחר"
+
+            EDR_Core::log('Girls01 form detected', array(
+                'form_id' => $form_id,
+                'form_name' => $form_name,
+                'is_other' => $is_other,
+                'team' => $team,
+                'kupa' => $kupa,
+            ));
+
+            // Condition 00: team starts with "אחר" (any kupa) - CHECKED FIRST
+            if ($is_other) {
+                EDR_Core::log('Girls01: Condition 00 matched (אחר)');
+                return 'https://pay.sumit.co.il/e5bzq5/klsp6l/klsp7e/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
+
+            // No "אחר" match - falls through to CSV redirect logic below
+            EDR_Core::log('Girls01 form - proceeding to CSV redirect logic');
         }
 
         // Hazaka form (hazaka) - specific redirects
@@ -541,6 +557,7 @@ class EDR_Redirect {
             $is_partial = (stripos($kupa, 'מאוחדת') !== false);
             $is_evening = (stripos($team, 'ערב') !== false);
             $is_morning = (stripos($team, 'בוקר') !== false);
+            $is_other = (stripos($team, 'אחר') === 0); // Starts with "אחר"
 
             EDR_Core::log('Hazaka form detected', array(
                 'form_id' => $form_id,
@@ -548,9 +565,16 @@ class EDR_Redirect {
                 'is_partial' => $is_partial,
                 'is_evening' => $is_evening,
                 'is_morning' => $is_morning,
+                'is_other' => $is_other,
                 'team' => $team,
                 'kupa' => $kupa,
             ));
+
+            // Condition 00: team starts with "אחר" (any kupa) - CHECKED FIRST
+            if ($is_other) {
+                EDR_Core::log('Hazaka: Condition 00 matched (אחר)');
+                return 'https://pay.sumit.co.il/e5bzq5/kls6g1/kls6so/payment/?name=[field id="first_name"]%20[field id="last_name"]&emailaddress=[field id="email"]&phone=[field id="parents_phone"]&companynumber=[field id="id_number"]';
+            }
 
             // Condition 01: team is "ערב" AND kupa is NOT "מאוחדת"
             if ($is_evening && !$is_partial) {

@@ -22,21 +22,24 @@ if (!defined('ABSPATH')) {
         <h2><?php esc_html_e('Form-Specific Redirects', 'elementor-dynamic-redirect'); ?></h2>
         <p><?php esc_html_e('The following forms have specific redirect rules:', 'elementor-dynamic-redirect'); ?></p>
         
-        <h3>pilatis01</h3>
+        <h3>pilatis01 (פילאטיס)</h3>
         <ul>
-            <li><?php esc_html_e('Condition 01: Team contains "סדרה קצרה" (any kupa) → jdhga1', 'elementor-dynamic-redirect'); ?></li>
-            <li><?php esc_html_e('Condition 02: Kupa is NOT "מאוחדת" AND team contains "סדרה ארוכה" → jdnexa', 'elementor-dynamic-redirect'); ?></li>
-            <li><?php esc_html_e('Condition 03: Kupa is "מאוחדת" AND team contains "סדרה ארוכה" → jdni0u', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 00: Team starts with "אחר" (any kupa) → juakea/juaky6 [CHECKED FIRST]', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 01: Kupa is "מאוחדת" AND team contains "סדרה קצרה" → jdnhkh', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 02: Kupa is "מאוחדת" AND team contains "סדרה ארוכה" → jdni0u', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 03: Kupa is NOT "מאוחדת" AND team contains "סדרה ארוכה" → jdnexa', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 04: Kupa is NOT "מאוחדת" AND team contains "סדרה קצרה" → jdhga1', 'elementor-dynamic-redirect'); ?></li>
         </ul>
 
-        <h3>girls01</h3>
+        <h3>girls01 (נערות)</h3>
         <ul>
-            <li><?php esc_html_e('Series redirects: סדרה קצרה/ארוכה with kupa-based URL selection', 'elementor-dynamic-redirect'); ?></li>
-            <li><?php esc_html_e('CSV-based redirects: Day-based redirects (יום ראשון/יום שלישי)', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('Condition 00: Team starts with "אחר" (any kupa) → klsp6l/klsp7e [CHECKED FIRST]', 'elementor-dynamic-redirect'); ?></li>
+            <li><?php esc_html_e('CSV-based redirects: Day-based redirects (יום ראשון/יום שלישי) with kupa-based URL selection', 'elementor-dynamic-redirect'); ?></li>
         </ul>
 
-        <h3>hazaka</h3>
+        <h3>hazaka (חזקה)</h3>
         <ul>
+            <li><?php esc_html_e('Condition 00: Team starts with "אחר" (any kupa) → kls6g1/kls6so [CHECKED FIRST]', 'elementor-dynamic-redirect'); ?></li>
             <li><?php esc_html_e('Condition 01: Team is "ערב" AND kupa is NOT "מאוחדת" → jd8qad/jd8qae', 'elementor-dynamic-redirect'); ?></li>
             <li><?php esc_html_e('Condition 02: Team is "ערב" AND kupa is "מאוחדת" → jswwda/jswwdc', 'elementor-dynamic-redirect'); ?></li>
             <li><?php esc_html_e('Condition 03: Team is "בוקר" AND kupa is NOT "מאוחדת" → jszwxe/jszyda', 'elementor-dynamic-redirect'); ?></li>

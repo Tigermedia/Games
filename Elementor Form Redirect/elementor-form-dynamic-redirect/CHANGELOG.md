@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.7] - 2025-11-27
+### Added
+- **New "אחר" (Other) redirect condition** for Girls01 and Hazaka forms
+  - Girls01 (Course 1): Team starts with "אחר" → redirects to `klsp6l/klsp7e`
+  - Hazaka (Course 2): Team starts with "אחר" → redirects to `kls6g1/kls6so`
+- Both conditions are checked FIRST (Condition 00), before any other redirect logic
+- Kupa field is ignored for "אחר" redirects (any kupa value works)
+
+### Changed
+- Updated Help page with accurate redirect rules for all three forms (pilatis01, girls01, hazaka)
+
 ## [1.8.6] - 2025-11-21
 ### Fixed
 - Removed incorrect "Short/Long Series" logic for Girls01 (Course 1) form to ensure it correctly uses CSV-based redirects for Sunday/Tuesday classes.
