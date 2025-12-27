@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../app/routes.dart';
 
 class StatsBar extends StatelessWidget {
@@ -18,35 +18,56 @@ class StatsBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          // Settings button
-          IconButton(
-            onPressed: () => context.go(AppRoutes.settings),
-            icon: const Icon(
-              Icons.settings,
-              color: AppColors.purple,
-              size: 28,
-            ),
-          ),
-
-          const Spacer(),
-
-          // Stars counter
-          _StatItem(
-            icon: '⭐',
+          // Stars counter (left side in RTL)
+          _StatBadge(
+            icon: Icons.star_rounded,
+            iconColor: AppColors.starYellow,
             value: stars,
             onTap: () => context.go(AppRoutes.rewards),
           ),
 
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
 
           // Trophies counter
-          _StatItem(
-            icon: '🏆',
+          _StatBadge(
+            icon: Icons.emoji_events_rounded,
+            iconColor: AppColors.primaryOrange,
             value: trophies,
             onTap: () => context.go(AppRoutes.rewards),
+          ),
+
+          const Spacer(),
+
+          // Settings button (right side in RTL)
+          GestureDetector(
+            onTap: () => context.go(AppRoutes.settings),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.borderOrange,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowCard,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.settings_outlined,
+                color: AppColors.primaryOrange,
+                size: 24,
+              ),
+            ),
           ),
         ],
       ),
@@ -54,13 +75,15 @@ class StatsBar extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
-  final String icon;
+class _StatBadge extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
   final int value;
   final VoidCallback? onTap;
 
-  const _StatItem({
+  const _StatBadge({
     required this.icon,
+    required this.iconColor,
     required this.value,
     this.onTap,
   });
@@ -70,27 +93,33 @@ class _StatItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.borderOrange.withOpacity(0.5),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppColors.shadowCard,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 20)),
+            Icon(icon, color: iconColor, size: 22),
             const SizedBox(width: 6),
             Text(
               value.toString(),
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppColors.purple,
+              style: GoogleFonts.lexend(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
               ),
             ),
           ],

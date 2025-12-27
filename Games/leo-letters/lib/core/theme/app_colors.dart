@@ -1,32 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// App color palette
+/// App color palette - based on Stitch design style guide
 class AppColors {
   AppColors._();
 
-  // Primary Colors
+  // Primary Colors (Lion Orange)
   static const Color primaryOrange = Color(0xFFFF9500);
+  static const Color primaryOrangeDark = Color(0xFFD67D00);
   static const Color primaryOrangeLight = Color(0xFFFFAA33);
-  static const Color primaryOrangeDark = Color(0xFFE68600);
 
-  // Secondary Colors
-  static const Color turquoise = Color(0xFF4ECDC4);
-  static const Color turquoiseLight = Color(0xFF6FD9D2);
-  static const Color turquoiseDark = Color(0xFF3DBDB4);
+  // Secondary Colors (Turquoise)
+  static const Color turquoise = Color(0xFF40E0D0);
+  static const Color turquoiseDark = Color(0xFF2EBDB0);
+  static const Color turquoiseLight = Color(0xFF6FE8DC);
 
-  // Accent Colors
-  static const Color purple = Color(0xFF5D4E8C);
-  static const Color purpleLight = Color(0xFF7A6BA8);
-  static const Color purpleDark = Color(0xFF4A3D70);
+  // Tertiary Colors (Purple)
+  static const Color purple = Color(0xFF800080);
+  static const Color purpleDark = Color(0xFF5A005A);
+  static const Color purpleLight = Color(0xFF9A339A);
 
-  // Neutral Colors
-  static const Color cream = Color(0xFFFFF8E7);
-  static const Color warmWhite = Color(0xFFFFFDF9);
+  // Success Colors (Green)
+  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color successGreenDark = Color(0xFF388E3C);
+  static const Color successGreenLight = Color(0xFF66BB6A);
+
+  // Background Colors
+  static const Color cream = Color(0xFFFFF8F0);
+  static const Color surface = Color(0xFFFFFFFF);
   static const Color softGray = Color(0xFFE8E4DC);
   static const Color mediumGray = Color(0xFFCCCCCC);
 
+  // Text Colors
+  static const Color textDark = Color(0xFF2D2418);
+  static const Color textSecondary = Color(0xFF888888);
+  static const Color textOnDark = Colors.white;
+  static const Color textOnPrimary = Colors.white;
+
   // Feedback Colors
-  static const Color successGreen = Color(0xFF7ED321);
+  static const Color errorRed = Color(0xFFE53935);
   static const Color errorSoft = Color(0xFFFFB4B4);
   static const Color warningYellow = Color(0xFFFFD93D);
 
@@ -35,6 +46,9 @@ class AppColors {
   static const Color starYellow = Color(0xFFFFD93D);
   static const Color skyBlue = Color(0xFF87CEEB);
   static const Color gold = Color(0xFFFFD700);
+  static const Color balloonYellow = Color(0xFFFFC107);
+  static const Color balloonPink = Color(0xFFE91E63);
+  static const Color balloonGreen = Color(0xFF4CAF50);
 
   // Card/Module Colors
   static const Color lettersCard = purple;
@@ -42,10 +56,13 @@ class AppColors {
   static const Color numbersCard = primaryOrange;
   static const Color dailyCard = softPink;
 
-  // Text Colors
-  static const Color textPrimary = purple;
-  static const Color textSecondary = Color(0xFF888888);
-  static const Color textOnDark = Colors.white;
+  // Overlay Colors
+  static const Color overlayDark = Color(0x99000000); // 60% black
+  static const Color overlayLight = Color(0x33FFFFFF); // 20% white
+
+  // Border Colors
+  static const Color borderOrange = Color(0xFFFFE4C4);
+  static const Color borderLight = Color(0xFFF5F5F5);
 
   // Gradients
   static const LinearGradient orangeGradient = LinearGradient(
@@ -66,10 +83,10 @@ class AppColors {
     colors: [purple, purpleLight],
   );
 
-  static const LinearGradient creamGradient = LinearGradient(
+  static const LinearGradient creamToMint = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [cream, turquoiseLight],
+    colors: [cream, Color(0xFFE0F7F4)],
   );
 
   static const LinearGradient goldGradient = LinearGradient(
@@ -77,4 +94,17 @@ class AppColors {
     end: Alignment.bottomRight,
     colors: [gold, starYellow],
   );
+
+  static const LinearGradient celebrationGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFFFF9E6), Color(0xFFFFFFFF)],
+  );
+
+  // Shadow Colors
+  static const Color shadowPrimary = Color(0xFFD67D00);
+  static const Color shadowSecondary = Color(0xFF2EBDB0);
+  static const Color shadowTertiary = Color(0xFF5A005A);
+  static const Color shadowCard = Color(0x0D000000); // 5% black
+  static const Color shadowToy = Color(0x1A000000); // 10% black
 }

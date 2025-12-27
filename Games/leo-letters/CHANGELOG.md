@@ -10,9 +10,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- First 5 letters implementation (א-ה)
-- Basic reward system
 - Audio integration
+- Remaining letter screens
+- Words and Numbers modules
+
+---
+
+## [0.3.0] - 2024-12-27
+
+### Added
+- **Implemented Google Stitch Designs**
+  - Integrated 15 screen designs from Google Stitch
+  - Updated theme colors to match style guide (#FF9500, #40E0D0, #800080)
+  - Updated typography to use Lexend (English) and Rubik (Hebrew) fonts
+
+- **Splash Screen**
+  - Animated Leo mascot with bounce effect
+  - Sky-blue to turquoise gradient background
+  - "!בוא נשחק" play button with shadow
+
+- **Home Screen**
+  - Module cards with progress bars (אותיות, מילים, מספרים)
+  - Stats bar with stars and trophies counters
+  - Daily challenge card
+  - Leo speech bubble asking "?מה נלמד היום"
+
+- **Balloon Game**
+  - Interactive floating balloons with Hebrew letters
+  - Leo asking "?איפה X" at bottom
+  - Correct/incorrect feedback animations
+  - Score tracking across 5 rounds
+  - Cloud decorations and sky gradient
+
+- **Celebration Overlay**
+  - Confetti particle effects
+  - Animated stars (1-3 based on performance)
+  - "!כל הכבוד" headline with gradient
+  - Leo celebration pose
+  - Continue and Play Again buttons
+
+- **New Shared Widgets**
+  - CelebrationOverlay with confetti and star animations
+  - DailyChallengeCard component
+  - Updated ModuleCard with progress bars
+
+### Changed
+- AppColors updated with exact hex values from Stitch style guide
+- AppTypography now uses Google Fonts (Lexend, Rubik)
+- StatsBar redesigned with circular settings button
+
+### Dependencies
+- Added google_fonts package for Lexend and Rubik fonts
+- Added confetti package for celebration effects
 
 ---
 

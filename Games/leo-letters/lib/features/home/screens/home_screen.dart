@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
 import '../../../app/routes.dart';
-import '../../../shared/widgets/leo_character.dart';
 import '../widgets/module_card.dart';
 import '../widgets/stats_bar.dart';
 
@@ -27,16 +26,20 @@ class HomeScreen extends ConsumerWidget {
 
             // Module cards
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
+                    const SizedBox(height: 8),
+
                     // Letters module
                     ModuleCard(
                       title: 'אותיות',
-                      icon: '🔤',
+                      subtitle: 'לומד את הא"ב',
+                      icon: Icons.text_fields_rounded,
                       color: AppColors.purple,
-                      progress: '15/22',
+                      current: 5,
+                      total: 22,
                       onTap: () => context.go(AppRoutes.letters),
                     ),
 
@@ -45,9 +48,11 @@ class HomeScreen extends ConsumerWidget {
                     // Words module
                     ModuleCard(
                       title: 'מילים',
-                      icon: '📖',
+                      subtitle: 'אוצר מילים ראשון',
+                      icon: Icons.menu_book_rounded,
                       color: AppColors.turquoise,
-                      progress: '8/50',
+                      current: 12,
+                      total: 40,
                       onTap: () => context.go(AppRoutes.words),
                     ),
 
@@ -56,32 +61,25 @@ class HomeScreen extends ConsumerWidget {
                     // Numbers module
                     ModuleCard(
                       title: 'מספרים',
-                      icon: '🔢',
+                      subtitle: 'לספור עד 10',
+                      icon: Icons.onetwothree_rounded,
                       color: AppColors.primaryOrange,
-                      progress: '5/20',
+                      current: 3,
+                      total: 15,
                       onTap: () => context.go(AppRoutes.numbers),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
                     // Daily challenge
-                    ModuleCard(
-                      title: '!אתגר יומי',
-                      icon: '🎁',
-                      color: AppColors.softPink,
-                      isSmall: true,
-                      onTap: () {
-                        // TODO: Show daily challenge
-                      },
-                    ),
+                    const DailyChallengeCard(),
 
-                    const Spacer(),
+                    const SizedBox(height: 24),
 
-                    // Leo character
-                    const LeoCharacter(
-                      speechText: '?מה נלמד היום',
-                      size: 120,
-                    ),
+                    // Leo section
+                    _LeoSection(),
+
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -91,4 +89,100 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _LeoSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Speech bubble
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadowCard,
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.help_outline_rounded,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '?מה נלמד היום',
+                style: GoogleFonts.rubik(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        // Speech bubble pointer
+        CustomPaint(
+          size: const Size(20, 10),
+          painter: _BubblePointerPainter(),
+        ),
+
+        // Leo image
+        Container(
+          width: 140,
+          height: 140,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.cream,
+                AppColors.turquoise.withOpacity(0.2),
+              ],
+            ),
+          ),
+          child: const Center(
+            child: Text(
+              '🦁',
+              style: TextStyle(fontSize: 80),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BubblePointerPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
