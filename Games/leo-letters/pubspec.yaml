@@ -1,0 +1,80 @@
+name: leo_letters
+description: "האותיות של ליאו - משחק חינוכי לגיל 5"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # Local Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Audio
+  audioplayers: ^5.2.1
+
+  # Animations
+  rive: ^0.12.4
+  lottie: ^3.1.0
+
+  # UI Helpers
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+
+  # Utils
+  intl: ^0.19.0
+  path_provider: ^2.1.2
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+  # Code Generation
+  build_runner: ^2.4.8
+  riverpod_generator: ^2.3.9
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/leo/
+    - assets/images/letters/
+    - assets/images/words/
+    - assets/images/numbers/
+    - assets/audio/
+    - assets/audio/letters/
+    - assets/audio/words/
+    - assets/audio/numbers/
+    - assets/audio/leo/
+    - assets/audio/effects/
+    - assets/animations/
+
+  fonts:
+    - family: Heebo
+      fonts:
+        - asset: assets/fonts/Heebo-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Heebo-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Heebo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Heebo-ExtraBold.ttf
+          weight: 800

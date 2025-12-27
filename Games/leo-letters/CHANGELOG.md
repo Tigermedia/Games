@@ -10,10 +10,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Flutter project initialization
-- Core theme and navigation setup
-- First 5 letters implementation
+- First 5 letters implementation (א-ה)
 - Basic reward system
+- Audio integration
+
+---
+
+## [0.2.0] - 2024-12-27
+
+### Added
+- **Flutter Project Structure**
+  - Complete project setup with pubspec.yaml
+  - Organized lib/ folder structure by features
+  - Asset directories for images, audio, animations, fonts
+
+- **Core Theme System**
+  - AppColors with primary (Orange #FF9500), secondary (Turquoise #4ECDC4), accent (Purple #5D4E8C)
+  - AppTypography with child-friendly Heebo font family
+  - AppTheme with complete ThemeData configuration
+
+- **Navigation**
+  - GoRouter setup with all app routes
+  - RTL Hebrew support with MaterialApp.router
+  - Named routes for all 14 screens
+
+- **Data Layer**
+  - HiveService for local storage (progress & settings)
+  - UserProgress model with Hive type adapters
+  - LetterProgress tracking per letter
+
+- **Hebrew Content**
+  - All 22 Hebrew letters (א-ת) with metadata
+  - Word examples for each letter
+  - HebrewLetter and WordExample models
+
+- **Feature Screens (Placeholders)**
+  - SplashScreen with Leo animation
+  - HomeScreen with module navigation
+  - LettersMenuScreen with letter grid
+  - LetterLearnScreen for letter introduction
+  - BalloonGameScreen for letter recognition
+  - TraceLetterScreen for letter writing
+  - WordsMenuScreen for word selection
+  - WordBuildScreen for word construction
+  - NumbersMenuScreen for number learning
+  - CountingGameScreen for counting practice
+  - RewardsScreen for achievement tracking
+  - SettingsScreen with sound/display options
+  - ParentZoneScreen with PIN protection
+
+- **Shared Widgets**
+  - LeoCharacter with mood states and speech bubbles
+  - ModuleCard for home screen navigation
+  - StatsBar for progress display
+
+### Technical
+- Flutter 3.x with Dart
+- Riverpod for state management
+- Hive for local NoSQL storage
+- GoRouter for declarative navigation
+- Full RTL (Right-to-Left) Hebrew support
 
 ---
 
@@ -62,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 0.2.0 | 2024-12-27 | Flutter project setup, theme, navigation, models |
 | 0.1.0 | 2024-12-27 | Project planning & design prompts |
 
 ---
