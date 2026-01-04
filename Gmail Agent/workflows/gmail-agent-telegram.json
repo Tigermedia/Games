@@ -1,0 +1,427 @@
+{
+  "name": "Gmail Agent - Telegram Learning",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "simple": false,
+        "filters": { "readStatus": "unread" },
+        "options": {}
+      },
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "gmail-trigger-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.item.json;\n\n// Extract headers\nconst getHeader = (name) => {\n  const header = email.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase());\n  return header?.value || '';\n};\n\n// Check if already processed\nconst labels = email.labelIds || [];\nconst processedLabelId = 'Label_5765892940498498754'; // ✅ Processed\nif (labels.includes(processedLabelId)) {\n  return { json: { skip: true, reason: 'Already processed' } };\n}\n\n// Get snippet/preview\nlet snippet = email.snippet || '';\nif (snippet.length > 200) snippet = snippet.substring(0, 200) + '...';\n\n// Extract sender email\nconst fromHeader = getHeader('From');\nconst emailMatch = fromHeader.match(/<([^>]+)>/) || [null, fromHeader];\nconst senderEmail = emailMatch[1] || fromHeader;\nconst senderDomain = senderEmail.includes('@') ? '@' + senderEmail.split('@')[1] : '';\n\nreturn {\n  json: {\n    skip: false,\n    id: email.id,\n    threadId: email.threadId,\n    from: fromHeader,\n    senderEmail: senderEmail,\n    senderDomain: senderDomain,\n    subject: getHeader('Subject'),\n    date: getHeader('Date'),\n    snippet: snippet,\n    labelIds: labels\n  }\n};"
+      },
+      "name": "Extract Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "id": "extract-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.skip }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "notEquals" }
+          }]
+        },
+        "options": {}
+      },
+      "name": "Not Processed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [500, 300],
+      "id": "not-processed-1"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=786446976", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=786446976", "cachedResultName": "Rules" },
+        "options": { "outputFormatting": { "values": { "outputFormat": "autoDetect" } } }
+      },
+      "name": "Fetch Rules",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [700, 200],
+      "id": "fetch-rules-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Extract Email Data').item.json;\nconst rules = $('Fetch Rules').all().map(item => item.json);\n\n// Filter active rules and sort by priority\nconst activeRules = rules\n  .filter(r => r.Active === true || r.Active === 'TRUE')\n  .sort((a, b) => (b.Priority || 0) - (a.Priority || 0));\n\n// Check each rule\nfor (const rule of activeRules) {\n  let match = false;\n  const pattern = (rule.Pattern || '').toLowerCase();\n  \n  switch (rule.Type) {\n    case 'sender':\n      match = email.senderEmail.toLowerCase().includes(pattern);\n      break;\n    case 'domain':\n      match = email.senderDomain.toLowerCase().includes(pattern);\n      break;\n    case 'subject':\n      match = (email.subject || '').toLowerCase().includes(pattern);\n      break;\n    case 'content':\n      match = (email.snippet || '').toLowerCase().includes(pattern);\n      break;\n  }\n  \n  if (match) {\n    return {\n      json: {\n        ...email,\n        ruleMatch: true,\n        matchedRule: rule,\n        label: rule.Label,\n        action: rule.Action || 'label',\n        confidence: 100,\n        source: 'rule'\n      }\n    };\n  }\n}\n\n// No rule match - needs AI classification\nreturn {\n  json: {\n    ...email,\n    ruleMatch: false,\n    matchedRule: null,\n    confidence: 0,\n    source: 'none'\n  }\n};"
+      },
+      "name": "Check Rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200],
+      "id": "check-rules-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.ruleMatch }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "equals" }
+          }]
+        },
+        "options": {}
+      },
+      "name": "Rule Match?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1100, 200],
+      "id": "rule-match-1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze this email and classify it into ONE category.\n\nEmail:\nFrom: {{ $json.from }}\nSubject: {{ $json.subject }}\nPreview: {{ $json.snippet }}\n\nCategories (respond with ONLY the label name):\n- 💼 Work (business, clients, projects)\n- 💼 Work/Clients (client communications)\n- 💼 Work/Invoices (bills, invoices)\n- 👤 Personal (friends, family)\n- 📰 Newsletters (subscriptions, digests)\n- 📰 Newsletters/Tech (tech newsletters)\n- 🔔 Notifications (alerts, updates)\n- 🔔 Notifications/Social (social media)\n- 🔔 Notifications/Security (security alerts)\n- 🔔 Notifications/Banking (bank notifications)\n- 🛒 Shopping (orders, shipping)\n- 🛒 Shopping/Orders (order confirmations)\n- 🛒 Shopping/Shipping (shipping updates)\n- 💰 Finance (money, payments)\n- 💰 Finance/Receipts (payment receipts)\n- 📅 Calendar (events, meetings)\n- ⬇️ Low Priority (promotions, spam-ish)\n\nRespond with JSON only:\n{\"label\": \"emoji + category name\", \"confidence\": 0-100, \"reason\": \"brief explanation\"}",
+        "options": {
+          "systemMessage": "You are an email classifier. Respond with valid JSON only, no markdown."
+        }
+      },
+      "name": "AI Classify",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [1300, 400],
+      "id": "ai-classify-1"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
+        "options": {}
+      },
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [1200, 600],
+      "id": "openai-1",
+      "credentials": {
+        "openAiApi": {
+          "id": "vaKjVFGWeNjpaqHu",
+          "name": "OpenAi - n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Check Rules').item.json;\nconst ai = $input.item.json;\n\nlet result;\ntry {\n  let output = ai.output || ai.text || JSON.stringify(ai);\n  output = output.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  result = typeof output === 'string' ? JSON.parse(output) : output;\n} catch (e) {\n  result = { label: '📥 To Review', confidence: 0, reason: 'Failed to parse AI response' };\n}\n\nreturn {\n  json: {\n    ...email,\n    aiLabel: result.label,\n    confidence: result.confidence || 0,\n    reason: result.reason || 'No reason provided',\n    source: 'ai'\n  }\n};"
+      },
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 400],
+      "id": "parse-ai-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.confidence }}",
+            "rightValue": 80,
+            "operator": { "type": "number", "operation": "gte" }
+          }]
+        },
+        "options": {}
+      },
+      "name": "High Confidence?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1700, 400],
+      "id": "confidence-check-1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.item.json;\n\n// Label mapping\nconst labelMap = {\n  '✅ Processed': 'Label_5765892940498498754',\n  '📥 To Review': 'Label_5612182498771498291',\n  '💼 Work': 'Label_5627104588498498541',\n  '💼 Work/Clients': 'Label_5627104588498498542',\n  '💼 Work/Team': 'Label_5627104588498498543',\n  '💼 Work/Projects': 'Label_5627104588498498544',\n  '💼 Work/Invoices': 'Label_5627104588498498545',\n  '👤 Personal': 'Label_5627104588498498546',\n  '👤 Personal/Family': 'Label_5627104588498498547',\n  '👤 Personal/Friends': 'Label_5627104588498498548',\n  '👤 Personal/Health': 'Label_5627104588498498549',\n  '📰 Newsletters': 'Label_5627104588498498550',\n  '📰 Newsletters/Tech': 'Label_5627104588498498551',\n  '📰 Newsletters/Business': 'Label_5627104588498498552',\n  '📰 Newsletters/Other': 'Label_5627104588498498553',\n  '🔔 Notifications': 'Label_5627104588498498554',\n  '🔔 Notifications/Social': 'Label_5627104588498498555',\n  '🔔 Notifications/Security': 'Label_5627104588498498556',\n  '🔔 Notifications/Apps': 'Label_5627104588498498557',\n  '🔔 Notifications/Banking': 'Label_5627104588498498558',\n  '🛒 Shopping': 'Label_5627104588498498559',\n  '🛒 Shopping/Orders': 'Label_5627104588498498560',\n  '🛒 Shopping/Shipping': 'Label_5627104588498498561',\n  '🛒 Shopping/Returns': 'Label_5627104588498498562',\n  '💰 Finance': 'Label_5627104588498498563',\n  '💰 Finance/Invoices': 'Label_5627104588498498564',\n  '💰 Finance/Receipts': 'Label_5627104588498498565',\n  '💰 Finance/Banking': 'Label_5627104588498498566',\n  '💰 Finance/Payments': 'Label_5627104588498498567',\n  '📅 Calendar': 'Label_5627104588498498568',\n  '📅 Calendar/Meetings': 'Label_5627104588498498569',\n  '📅 Calendar/Events': 'Label_5627104588498498570',\n  '⬇️ Low Priority': 'Label_5627104588498498571',\n  '⬇️ Low Priority/Promotions': 'Label_5627104588498498572',\n  '⬇️ Low Priority/Bulk': 'Label_5627104588498498573'\n};\n\nconst label = email.label || email.aiLabel;\nconst labelId = labelMap[label];\nconst processedId = labelMap['✅ Processed'];\n\nreturn {\n  json: {\n    ...email,\n    labelId: labelId || labelMap['📥 To Review'],\n    processedId: processedId,\n    labelName: label\n  }\n};"
+      },
+      "name": "Get Label ID (Rule)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1300, 100],
+      "id": "get-label-rule-1"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": "={{ [$json.labelId, $json.processedId] }}"
+      },
+      "name": "Apply Rule Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1500, 100],
+      "id": "apply-rule-label-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.item.json;\n\nconst labelMap = {\n  '✅ Processed': 'Label_5765892940498498754',\n  '📥 To Review': 'Label_5612182498771498291',\n  '💼 Work': 'Label_5627104588498498541',\n  '💼 Work/Clients': 'Label_5627104588498498542',\n  '💼 Work/Team': 'Label_5627104588498498543',\n  '💼 Work/Projects': 'Label_5627104588498498544',\n  '💼 Work/Invoices': 'Label_5627104588498498545',\n  '👤 Personal': 'Label_5627104588498498546',\n  '👤 Personal/Family': 'Label_5627104588498498547',\n  '👤 Personal/Friends': 'Label_5627104588498498548',\n  '👤 Personal/Health': 'Label_5627104588498498549',\n  '📰 Newsletters': 'Label_5627104588498498550',\n  '📰 Newsletters/Tech': 'Label_5627104588498498551',\n  '📰 Newsletters/Business': 'Label_5627104588498498552',\n  '📰 Newsletters/Other': 'Label_5627104588498498553',\n  '🔔 Notifications': 'Label_5627104588498498554',\n  '🔔 Notifications/Social': 'Label_5627104588498498555',\n  '🔔 Notifications/Security': 'Label_5627104588498498556',\n  '🔔 Notifications/Apps': 'Label_5627104588498498557',\n  '🔔 Notifications/Banking': 'Label_5627104588498498558',\n  '🛒 Shopping': 'Label_5627104588498498559',\n  '🛒 Shopping/Orders': 'Label_5627104588498498560',\n  '🛒 Shopping/Shipping': 'Label_5627104588498498561',\n  '🛒 Shopping/Returns': 'Label_5627104588498498562',\n  '💰 Finance': 'Label_5627104588498498563',\n  '💰 Finance/Invoices': 'Label_5627104588498498564',\n  '💰 Finance/Receipts': 'Label_5627104588498498565',\n  '💰 Finance/Banking': 'Label_5627104588498498566',\n  '💰 Finance/Payments': 'Label_5627104588498498567',\n  '📅 Calendar': 'Label_5627104588498498568',\n  '📅 Calendar/Meetings': 'Label_5627104588498498569',\n  '📅 Calendar/Events': 'Label_5627104588498498570',\n  '⬇️ Low Priority': 'Label_5627104588498498571',\n  '⬇️ Low Priority/Promotions': 'Label_5627104588498498572',\n  '⬇️ Low Priority/Bulk': 'Label_5627104588498498573'\n};\n\nconst labelId = labelMap[email.aiLabel];\nconst processedId = labelMap['✅ Processed'];\n\nreturn {\n  json: {\n    ...email,\n    labelId: labelId || labelMap['📥 To Review'],\n    processedId: processedId,\n    labelName: email.aiLabel\n  }\n};"
+      },
+      "name": "Get Label ID (AI High)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1900, 300],
+      "id": "get-label-ai-high-1"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.id }}",
+        "labelIds": "={{ [$json.labelId, $json.processedId] }}"
+      },
+      "name": "Apply AI Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2100, 300],
+      "id": "apply-ai-label-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.item.json;\nconst chatId = '1557388011';\n\n// Build inline keyboard for Telegram\nconst keyboard = {\n  inline_keyboard: [\n    [\n      { text: '💼 Work', callback_data: `label:💼 Work:${email.id}:${email.senderEmail}` },\n      { text: '👤 Personal', callback_data: `label:👤 Personal:${email.id}:${email.senderEmail}` },\n      { text: '📰 Newsletter', callback_data: `label:📰 Newsletters:${email.id}:${email.senderEmail}` }\n    ],\n    [\n      { text: '🔔 Notification', callback_data: `label:🔔 Notifications:${email.id}:${email.senderEmail}` },\n      { text: '🛒 Shopping', callback_data: `label:🛒 Shopping:${email.id}:${email.senderEmail}` },\n      { text: '💰 Finance', callback_data: `label:💰 Finance:${email.id}:${email.senderEmail}` }\n    ],\n    [\n      { text: '📅 Calendar', callback_data: `label:📅 Calendar:${email.id}:${email.senderEmail}` },\n      { text: '⬇️ Low Priority', callback_data: `label:⬇️ Low Priority:${email.id}:${email.senderEmail}` }\n    ],\n    [\n      { text: '🗑️ Delete', callback_data: `delete:${email.id}` },\n      { text: '📦 Archive', callback_data: `archive:${email.id}` },\n      { text: '⏭️ Skip', callback_data: `skip:${email.id}` }\n    ]\n  ]\n};\n\n// Build message text\nlet subject = email.subject || '(No subject)';\nif (subject.length > 50) subject = subject.substring(0, 50) + '...';\n\nlet snippet = email.snippet || '';\nif (snippet.length > 150) snippet = snippet.substring(0, 150) + '...';\n\nconst message = `📬 *New Email Needs Classification*\\n\\n` +\n  `*From:* \\`${email.senderEmail}\\`\\n` +\n  `*Subject:* ${subject}\\n\\n` +\n  `_${snippet}_\\n\\n` +\n  `🤖 *AI Suggestion:* ${email.aiLabel} (${email.confidence}%)\\n` +\n  `_${email.reason}_`;\n\nreturn {\n  json: {\n    chatId: chatId,\n    message: message,\n    keyboard: keyboard,\n    emailId: email.id,\n    senderEmail: email.senderEmail,\n    subject: email.subject,\n    aiLabel: email.aiLabel,\n    confidence: email.confidence\n  }\n};"
+      },
+      "name": "Build Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1900, 500],
+      "id": "build-telegram-1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "reply_markup": "={{ JSON.stringify($json.keyboard) }}"
+        }
+      },
+      "name": "Send Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [2100, 500],
+      "id": "send-telegram-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Build Telegram Message').item.json.emailId }}",
+        "labelIds": "={{ ['Label_5612182498771498291'] }}"
+      },
+      "name": "Mark as To Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2300, 500],
+      "id": "mark-to-review-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "Email ID": "={{ $json.id }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Rule ID": "={{ $json.matchedRule ? $json.matchedRule['Rule ID'] : '' }}",
+            "Label Applied": "={{ $json.labelName }}",
+            "Confidence": "=100",
+            "Action": "=rule_applied"
+          }
+        },
+        "options": {}
+      },
+      "name": "Log Rule Applied",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1700, 100],
+      "id": "log-rule-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "Email ID": "={{ $json.id }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Rule ID": "",
+            "Label Applied": "={{ $json.labelName }}",
+            "Confidence": "={{ $json.confidence }}",
+            "Action": "=ai_high_confidence"
+          }
+        },
+        "options": {}
+      },
+      "name": "Log AI High",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2300, 300],
+      "id": "log-ai-high-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "Email ID": "={{ $json.emailId }}",
+            "From": "={{ $json.senderEmail }}",
+            "Subject": "={{ $json.subject }}",
+            "Rule ID": "",
+            "Label Applied": "=📥 To Review",
+            "Confidence": "={{ $json.confidence }}",
+            "Action": "=sent_to_telegram"
+          }
+        },
+        "options": {}
+      },
+      "name": "Log Telegram Sent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2500, 500],
+      "id": "log-telegram-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [[{ "node": "Extract Email Data", "type": "main", "index": 0 }]]
+    },
+    "Extract Email Data": {
+      "main": [[{ "node": "Not Processed?", "type": "main", "index": 0 }]]
+    },
+    "Not Processed?": {
+      "main": [
+        [{ "node": "Fetch Rules", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Fetch Rules": {
+      "main": [[{ "node": "Check Rules", "type": "main", "index": 0 }]]
+    },
+    "Check Rules": {
+      "main": [[{ "node": "Rule Match?", "type": "main", "index": 0 }]]
+    },
+    "Rule Match?": {
+      "main": [
+        [{ "node": "Get Label ID (Rule)", "type": "main", "index": 0 }],
+        [{ "node": "AI Classify", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Classify", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "AI Classify": {
+      "main": [[{ "node": "Parse AI Response", "type": "main", "index": 0 }]]
+    },
+    "Parse AI Response": {
+      "main": [[{ "node": "High Confidence?", "type": "main", "index": 0 }]]
+    },
+    "High Confidence?": {
+      "main": [
+        [{ "node": "Get Label ID (AI High)", "type": "main", "index": 0 }],
+        [{ "node": "Build Telegram Message", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Label ID (Rule)": {
+      "main": [[{ "node": "Apply Rule Label", "type": "main", "index": 0 }]]
+    },
+    "Apply Rule Label": {
+      "main": [[{ "node": "Log Rule Applied", "type": "main", "index": 0 }]]
+    },
+    "Get Label ID (AI High)": {
+      "main": [[{ "node": "Apply AI Label", "type": "main", "index": 0 }]]
+    },
+    "Apply AI Label": {
+      "main": [[{ "node": "Log AI High", "type": "main", "index": 0 }]]
+    },
+    "Build Telegram Message": {
+      "main": [[{ "node": "Send Telegram", "type": "main", "index": 0 }]]
+    },
+    "Send Telegram": {
+      "main": [[{ "node": "Mark as To Review", "type": "main", "index": 0 }]]
+    },
+    "Mark as To Review": {
+      "main": [[{ "node": "Log Telegram Sent", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "meta": { "templateCredsSetupCompleted": true }
+}

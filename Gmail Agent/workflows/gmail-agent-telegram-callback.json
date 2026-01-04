@@ -1,0 +1,559 @@
+{
+  "name": "Gmail Agent - Telegram Callback Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["callback_query"],
+        "additionalFields": {}
+      },
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [100, 300],
+      "id": "telegram-trigger-1",
+      "webhookId": "gmail-agent-telegram",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = $input.item.json;\nconst callback = update.callback_query;\n\nif (!callback || !callback.data) {\n  return { json: { skip: true, reason: 'No callback data' } };\n}\n\nconst data = callback.data;\nconst parts = data.split(':');\n\nlet action, label, emailId, senderEmail;\n\nif (parts[0] === 'label') {\n  action = 'label';\n  label = parts[1];\n  emailId = parts[2];\n  senderEmail = parts[3] || '';\n} else if (parts[0] === 'delete') {\n  action = 'delete';\n  emailId = parts[1];\n} else if (parts[0] === 'archive') {\n  action = 'archive';\n  emailId = parts[1];\n} else if (parts[0] === 'skip') {\n  action = 'skip';\n  emailId = parts[1];\n} else {\n  return { json: { skip: true, reason: 'Unknown action' } };\n}\n\nreturn {\n  json: {\n    skip: false,\n    action: action,\n    label: label || '',\n    emailId: emailId,\n    senderEmail: senderEmail,\n    callbackQueryId: callback.id,\n    messageId: callback.message?.message_id,\n    chatId: callback.message?.chat?.id || '1557388011',\n    originalMessage: callback.message?.text || ''\n  }\n};"
+      },
+      "name": "Parse Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "id": "parse-callback-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.skip }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "notEquals" }
+          }]
+        },
+        "options": {}
+      },
+      "name": "Valid Callback?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [500, 300],
+      "id": "valid-callback-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "label",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Is Label Action?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [700, 300],
+      "id": "is-label-1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.item.json;\n\n// Label mapping\nconst labelMap = {\n  '✅ Processed': 'Label_5765892940498498754',\n  '📥 To Review': 'Label_5612182498771498291',\n  '💼 Work': 'Label_5627104588498498541',\n  '💼 Work/Clients': 'Label_5627104588498498542',\n  '💼 Work/Team': 'Label_5627104588498498543',\n  '💼 Work/Projects': 'Label_5627104588498498544',\n  '💼 Work/Invoices': 'Label_5627104588498498545',\n  '👤 Personal': 'Label_5627104588498498546',\n  '👤 Personal/Family': 'Label_5627104588498498547',\n  '👤 Personal/Friends': 'Label_5627104588498498548',\n  '👤 Personal/Health': 'Label_5627104588498498549',\n  '📰 Newsletters': 'Label_5627104588498498550',\n  '📰 Newsletters/Tech': 'Label_5627104588498498551',\n  '📰 Newsletters/Business': 'Label_5627104588498498552',\n  '📰 Newsletters/Other': 'Label_5627104588498498553',\n  '🔔 Notifications': 'Label_5627104588498498554',\n  '🔔 Notifications/Social': 'Label_5627104588498498555',\n  '🔔 Notifications/Security': 'Label_5627104588498498556',\n  '🔔 Notifications/Apps': 'Label_5627104588498498557',\n  '🔔 Notifications/Banking': 'Label_5627104588498498558',\n  '🛒 Shopping': 'Label_5627104588498498559',\n  '🛒 Shopping/Orders': 'Label_5627104588498498560',\n  '🛒 Shopping/Shipping': 'Label_5627104588498498561',\n  '🛒 Shopping/Returns': 'Label_5627104588498498562',\n  '💰 Finance': 'Label_5627104588498498563',\n  '💰 Finance/Invoices': 'Label_5627104588498498564',\n  '💰 Finance/Receipts': 'Label_5627104588498498565',\n  '💰 Finance/Banking': 'Label_5627104588498498566',\n  '💰 Finance/Payments': 'Label_5627104588498498567',\n  '📅 Calendar': 'Label_5627104588498498568',\n  '📅 Calendar/Meetings': 'Label_5627104588498498569',\n  '📅 Calendar/Events': 'Label_5627104588498498570',\n  '⬇️ Low Priority': 'Label_5627104588498498571',\n  '⬇️ Low Priority/Promotions': 'Label_5627104588498498572',\n  '⬇️ Low Priority/Bulk': 'Label_5627104588498498573'\n};\n\nconst labelId = labelMap[data.label];\nconst processedId = labelMap['✅ Processed'];\nconst toReviewId = labelMap['📥 To Review'];\n\nreturn {\n  json: {\n    ...data,\n    labelId: labelId || labelMap['📥 To Review'],\n    processedId: processedId,\n    toReviewId: toReviewId\n  }\n};"
+      },
+      "name": "Get Label IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200],
+      "id": "get-label-ids-1"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ [$json.labelId, $json.processedId] }}"
+      },
+      "name": "Add Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 200],
+      "id": "add-label-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ [$json.toReviewId] }}"
+      },
+      "name": "Remove To Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1300, 200],
+      "id": "remove-to-review-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=786446976", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=786446976", "cachedResultName": "Rules" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Rule ID": "={{ Math.floor(Date.now() / 1000) }}",
+            "Type": "=sender",
+            "Pattern": "={{ $json.senderEmail }}",
+            "Label": "={{ $json.label }}",
+            "Action": "=label",
+            "Priority": "=10",
+            "Active": "=TRUE",
+            "Created": "={{ $now.toISO() }}",
+            "Last Used": "={{ $now.toISO() }}",
+            "Use Count": "=1",
+            "Source": "=telegram_button",
+            "Original Text": "=Telegram button click"
+          }
+        },
+        "options": {}
+      },
+      "name": "Save New Rule",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1500, 200],
+      "id": "save-rule-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $json.chatId }}",
+        "messageId": "={{ $json.messageId }}",
+        "text": "={{ $json.originalMessage + '\\n\\n✅ *Labeled as: ' + $json.label + '*\\n📝 Rule created for: `' + $json.senderEmail + '`' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Update Telegram Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1700, 200],
+      "id": "update-message-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "answerQuery",
+        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
+        "text": "={{ '✅ ' + $json.label }}",
+        "additionalFields": {}
+      },
+      "name": "Answer Callback",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1900, 200],
+      "id": "answer-callback-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "delete",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Is Delete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 400],
+      "id": "is-delete-1"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $json.emailId }}"
+      },
+      "name": "Delete Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 400],
+      "id": "delete-email-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $json.chatId }}",
+        "messageId": "={{ $json.messageId }}",
+        "text": "={{ $json.originalMessage + '\\n\\n🗑️ *Email Deleted*' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Confirm Delete",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1300, 400],
+      "id": "confirm-delete-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "answerQuery",
+        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
+        "text": "=🗑️ Deleted",
+        "additionalFields": {}
+      },
+      "name": "Answer Delete",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1500, 400],
+      "id": "answer-delete-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "or",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "archive",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Is Archive?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 600],
+      "id": "is-archive-1"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ ['INBOX', 'Label_5612182498771498291'] }}"
+      },
+      "name": "Archive Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 600],
+      "id": "archive-email-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ ['Label_5765892940498498754'] }}"
+      },
+      "name": "Mark Processed (Archive)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1300, 600],
+      "id": "mark-processed-archive-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $json.chatId }}",
+        "messageId": "={{ $json.messageId }}",
+        "text": "={{ $json.originalMessage + '\\n\\n📦 *Email Archived*' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Confirm Archive",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1500, 600],
+      "id": "confirm-archive-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "answerQuery",
+        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
+        "text": "=📦 Archived",
+        "additionalFields": {}
+      },
+      "name": "Answer Archive",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1700, 600],
+      "id": "answer-archive-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ ['Label_5765892940498498754'] }}"
+      },
+      "name": "Mark Processed (Skip)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 800],
+      "id": "mark-processed-skip-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": "={{ ['Label_5612182498771498291'] }}"
+      },
+      "name": "Remove To Review (Skip)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1300, 800],
+      "id": "remove-review-skip-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $json.chatId }}",
+        "messageId": "={{ $json.messageId }}",
+        "text": "={{ $json.originalMessage + '\\n\\n⏭️ *Skipped (no rule created)*' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "name": "Confirm Skip",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1500, 800],
+      "id": "confirm-skip-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "answerQuery",
+        "queryId": "={{ $('Parse Callback').item.json.callbackQueryId }}",
+        "text": "=⏭️ Skipped",
+        "additionalFields": {}
+      },
+      "name": "Answer Skip",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1700, 800],
+      "id": "answer-skip-1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TELEGRAM_CREDENTIAL_ID",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "Email ID": "={{ $json.emailId }}",
+            "From": "={{ $json.senderEmail }}",
+            "Subject": "",
+            "Rule ID": "=NEW",
+            "Label Applied": "={{ $json.label }}",
+            "Confidence": "=100",
+            "Action": "=telegram_label"
+          }
+        },
+        "options": {}
+      },
+      "name": "Log Label Action",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2100, 200],
+      "id": "log-label-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Parse Callback", "type": "main", "index": 0 }]]
+    },
+    "Parse Callback": {
+      "main": [[{ "node": "Valid Callback?", "type": "main", "index": 0 }]]
+    },
+    "Valid Callback?": {
+      "main": [
+        [{ "node": "Is Label Action?", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Is Label Action?": {
+      "main": [
+        [{ "node": "Get Label IDs", "type": "main", "index": 0 }],
+        [{ "node": "Is Delete?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Label IDs": {
+      "main": [[{ "node": "Add Label", "type": "main", "index": 0 }]]
+    },
+    "Add Label": {
+      "main": [[{ "node": "Remove To Review", "type": "main", "index": 0 }]]
+    },
+    "Remove To Review": {
+      "main": [[{ "node": "Save New Rule", "type": "main", "index": 0 }]]
+    },
+    "Save New Rule": {
+      "main": [[{ "node": "Update Telegram Message", "type": "main", "index": 0 }]]
+    },
+    "Update Telegram Message": {
+      "main": [[{ "node": "Answer Callback", "type": "main", "index": 0 }]]
+    },
+    "Answer Callback": {
+      "main": [[{ "node": "Log Label Action", "type": "main", "index": 0 }]]
+    },
+    "Is Delete?": {
+      "main": [
+        [{ "node": "Delete Email", "type": "main", "index": 0 }],
+        [{ "node": "Is Archive?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Delete Email": {
+      "main": [[{ "node": "Confirm Delete", "type": "main", "index": 0 }]]
+    },
+    "Confirm Delete": {
+      "main": [[{ "node": "Answer Delete", "type": "main", "index": 0 }]]
+    },
+    "Is Archive?": {
+      "main": [
+        [{ "node": "Archive Email", "type": "main", "index": 0 }],
+        [{ "node": "Mark Processed (Skip)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Archive Email": {
+      "main": [[{ "node": "Mark Processed (Archive)", "type": "main", "index": 0 }]]
+    },
+    "Mark Processed (Archive)": {
+      "main": [[{ "node": "Confirm Archive", "type": "main", "index": 0 }]]
+    },
+    "Confirm Archive": {
+      "main": [[{ "node": "Answer Archive", "type": "main", "index": 0 }]]
+    },
+    "Mark Processed (Skip)": {
+      "main": [[{ "node": "Remove To Review (Skip)", "type": "main", "index": 0 }]]
+    },
+    "Remove To Review (Skip)": {
+      "main": [[{ "node": "Confirm Skip", "type": "main", "index": 0 }]]
+    },
+    "Confirm Skip": {
+      "main": [[{ "node": "Answer Skip", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "meta": { "templateCredsSetupCompleted": true }
+}
