@@ -3,15 +3,26 @@
   "nodes": [
     {
       "parameters": {
-        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
         "simple": false,
-        "filters": { "readStatus": "unread" },
+        "filters": {
+          "readStatus": "unread"
+        },
         "options": {}
       },
       "name": "Gmail Trigger",
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1,
-      "position": [100, 300],
+      "position": [
+        112,
+        260
+      ],
       "id": "gmail-trigger-1",
       "credentials": {
         "gmailOAuth2": {
@@ -27,39 +38,72 @@
       "name": "Extract Email Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [300, 300],
+      "position": [
+        336,
+        260
+      ],
       "id": "extract-1"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
-          "conditions": [{
-            "leftValue": "={{ $json.skip }}",
-            "rightValue": true,
-            "operator": { "type": "boolean", "operation": "notEquals" }
-          }]
+          "conditions": [
+            {
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ]
         },
         "options": {}
       },
       "name": "Not Processed?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [500, 300],
+      "position": [
+        560,
+        260
+      ],
       "id": "not-processed-1"
     },
     {
       "parameters": {
-        "operation": "read",
-        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
-        "sheetName": { "__rl": true, "mode": "list", "value": "gid=786446976", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=786446976", "cachedResultName": "Rules" },
-        "options": { "outputFormatting": { "values": { "outputFormat": "autoDetect" } } }
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=786446976",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=786446976",
+          "cachedResultName": "Rules"
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "outputFormat": "autoDetect"
+            },
+            "dateFormat": "formattedText"
+          }
+        }
       },
       "name": "Fetch Rules",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [700, 200],
+      "position": [
+        784,
+        260
+      ],
       "id": "fetch-rules-1",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -75,26 +119,40 @@
       "name": "Check Rules",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 200],
+      "position": [
+        1008,
+        260
+      ],
       "id": "check-rules-1"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
-          "conditions": [{
-            "leftValue": "={{ $json.ruleMatch }}",
-            "rightValue": true,
-            "operator": { "type": "boolean", "operation": "equals" }
-          }]
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ruleMatch }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
         },
         "options": {}
       },
       "name": "Rule Match?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1100, 200],
+      "position": [
+        1232,
+        260
+      ],
       "id": "rule-match-1"
     },
     {
@@ -108,18 +166,29 @@
       "name": "AI Classify",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 1.7,
-      "position": [1300, 400],
+      "position": [
+        1456,
+        408
+      ],
       "id": "ai-classify-1"
     },
     {
       "parameters": {
-        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
         "options": {}
       },
       "name": "OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
-      "position": [1200, 600],
+      "position": [
+        1328,
+        624
+      ],
       "id": "openai-1",
       "credentials": {
         "openAiApi": {
@@ -135,26 +204,40 @@
       "name": "Parse AI Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1500, 400],
+      "position": [
+        1808,
+        408
+      ],
       "id": "parse-ai-1"
     },
     {
       "parameters": {
         "conditions": {
-          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
           "combinator": "and",
-          "conditions": [{
-            "leftValue": "={{ $json.confidence }}",
-            "rightValue": 80,
-            "operator": { "type": "number", "operation": "gte" }
-          }]
+          "conditions": [
+            {
+              "leftValue": "={{ $json.confidence }}",
+              "rightValue": 80,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ]
         },
         "options": {}
       },
       "name": "High Confidence?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1700, 400],
+      "position": [
+        2032,
+        408
+      ],
       "id": "confidence-check-1"
     },
     {
@@ -164,7 +247,10 @@
       "name": "Get Label ID (Rule)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1300, 100],
+      "position": [
+        1520,
+        112
+      ],
       "id": "get-label-rule-1"
     },
     {
@@ -176,8 +262,12 @@
       "name": "Apply Rule Label",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [1500, 100],
+      "position": [
+        1808,
+        112
+      ],
       "id": "apply-rule-label-1",
+      "webhookId": "0bf917aa-3616-4e3c-af5d-97efb24b6a97",
       "credentials": {
         "gmailOAuth2": {
           "id": "AsC5TeEQk0deTNge",
@@ -192,7 +282,10 @@
       "name": "Get Label ID (AI High)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1900, 300],
+      "position": [
+        2256,
+        312
+      ],
       "id": "get-label-ai-high-1"
     },
     {
@@ -204,8 +297,12 @@
       "name": "Apply AI Label",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [2100, 300],
+      "position": [
+        2480,
+        312
+      ],
       "id": "apply-ai-label-1",
+      "webhookId": "147912c5-c486-4097-a1fa-224b5d7a3a17",
       "credentials": {
         "gmailOAuth2": {
           "id": "AsC5TeEQk0deTNge",
@@ -220,7 +317,10 @@
       "name": "Build Telegram Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1900, 500],
+      "position": [
+        2256,
+        504
+      ],
       "id": "build-telegram-1"
     },
     {
@@ -228,19 +328,23 @@
         "chatId": "={{ $json.chatId }}",
         "text": "={{ $json.message }}",
         "additionalFields": {
-          "parse_mode": "Markdown",
+          "parse_mode": "MarkdownV2",
           "reply_markup": "={{ JSON.stringify($json.keyboard) }}"
         }
       },
       "name": "Send Telegram",
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
-      "position": [2100, 500],
+      "position": [
+        2480,
+        504
+      ],
       "id": "send-telegram-1",
+      "webhookId": "761780f7-ee3d-4b6e-aebb-e01b00dac130",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -253,8 +357,12 @@
       "name": "Mark as To Review",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [2300, 500],
+      "position": [
+        2704,
+        504
+      ],
       "id": "mark-to-review-1",
+      "webhookId": "6f1c7ad1-2bf7-4be0-8e98-79199a591e65",
       "credentials": {
         "gmailOAuth2": {
           "id": "AsC5TeEQk0deTNge",
@@ -265,8 +373,18 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
-        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 889143546,
+          "mode": "list",
+          "cachedResultName": "Activity Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -278,14 +396,94 @@
             "Label Applied": "={{ $json.labelName }}",
             "Confidence": "=100",
             "Action": "=rule_applied"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rule ID",
+              "displayName": "Rule ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Label Applied",
+              "displayName": "Label Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
       "name": "Log Rule Applied",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [1700, 100],
+      "position": [
+        2032,
+        112
+      ],
       "id": "log-rule-1",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -297,8 +495,18 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
-        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 889143546,
+          "mode": "list",
+          "cachedResultName": "Activity Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -306,18 +514,97 @@
             "Email ID": "={{ $json.id }}",
             "From": "={{ $json.from }}",
             "Subject": "={{ $json.subject }}",
-            "Rule ID": "",
             "Label Applied": "={{ $json.labelName }}",
             "Confidence": "={{ $json.confidence }}",
             "Action": "=ai_high_confidence"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rule ID",
+              "displayName": "Rule ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Label Applied",
+              "displayName": "Label Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
       "name": "Log AI High",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2300, 300],
+      "position": [
+        2704,
+        312
+      ],
       "id": "log-ai-high-1",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -329,8 +616,18 @@
     {
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
-        "sheetName": { "__rl": true, "mode": "list", "value": "gid=889143546", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546", "cachedResultName": "Activity Log" },
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 889143546,
+          "mode": "list",
+          "cachedResultName": "Activity Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=889143546"
+        },
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
@@ -338,18 +635,97 @@
             "Email ID": "={{ $json.emailId }}",
             "From": "={{ $json.senderEmail }}",
             "Subject": "={{ $json.subject }}",
-            "Rule ID": "",
             "Label Applied": "=📥 To Review",
             "Confidence": "={{ $json.confidence }}",
             "Action": "=sent_to_telegram"
-          }
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "From",
+              "displayName": "From",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Rule ID",
+              "displayName": "Rule ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Label Applied",
+              "displayName": "Label Applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Action",
+              "displayName": "Action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
         },
         "options": {}
       },
       "name": "Log Telegram Sent",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [2500, 500],
+      "position": [
+        2928,
+        504
+      ],
       "id": "log-telegram-1",
       "credentials": {
         "googleSheetsOAuth2Api": {
@@ -361,67 +737,212 @@
   ],
   "connections": {
     "Gmail Trigger": {
-      "main": [[{ "node": "Extract Email Data", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract Email Data": {
-      "main": [[{ "node": "Not Processed?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Not Processed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Not Processed?": {
       "main": [
-        [{ "node": "Fetch Rules", "type": "main", "index": 0 }],
+        [
+          {
+            "node": "Fetch Rules",
+            "type": "main",
+            "index": 0
+          }
+        ],
         []
       ]
     },
     "Fetch Rules": {
-      "main": [[{ "node": "Check Rules", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Check Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Check Rules": {
-      "main": [[{ "node": "Rule Match?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Rule Match?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Rule Match?": {
       "main": [
-        [{ "node": "Get Label ID (Rule)", "type": "main", "index": 0 }],
-        [{ "node": "AI Classify", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Get Label ID (Rule)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Classify": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "OpenAI Chat Model": {
-      "ai_languageModel": [[{ "node": "AI Classify", "type": "ai_languageModel", "index": 0 }]]
-    },
-    "AI Classify": {
-      "main": [[{ "node": "Parse AI Response", "type": "main", "index": 0 }]]
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Classify",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Parse AI Response": {
-      "main": [[{ "node": "High Confidence?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "High Confidence?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "High Confidence?": {
       "main": [
-        [{ "node": "Get Label ID (AI High)", "type": "main", "index": 0 }],
-        [{ "node": "Build Telegram Message", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Get Label ID (AI High)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Telegram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Get Label ID (Rule)": {
-      "main": [[{ "node": "Apply Rule Label", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Apply Rule Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Apply Rule Label": {
-      "main": [[{ "node": "Log Rule Applied", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Log Rule Applied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Label ID (AI High)": {
-      "main": [[{ "node": "Apply AI Label", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Apply AI Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Apply AI Label": {
-      "main": [[{ "node": "Log AI High", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Log AI High",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Telegram Message": {
-      "main": [[{ "node": "Send Telegram", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Send Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Send Telegram": {
-      "main": [[{ "node": "Mark as To Review", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Mark as To Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Mark as To Review": {
-      "main": [[{ "node": "Log Telegram Sent", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Log Telegram Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": { "executionOrder": "v1" },
   "pinData": {},
-  "meta": { "templateCredsSetupCompleted": true }
+  "meta": {
+    "instanceId": "06aaaa65128c92512d7106e22b45541e06928961a8b642e3be6289b8c6344436",
+    "templateCredsSetupCompleted": true
+  }
 }

@@ -14,8 +14,8 @@
       "webhookId": "gmail-agent-telegram",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -168,8 +168,8 @@
       "id": "update-message-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -187,8 +187,8 @@
       "id": "answer-callback-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -247,8 +247,8 @@
       "id": "confirm-delete-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -266,8 +266,8 @@
       "id": "answer-delete-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -345,8 +345,8 @@
       "id": "confirm-archive-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -364,8 +364,8 @@
       "id": "answer-archive-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -422,8 +422,8 @@
       "id": "confirm-skip-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
@@ -441,8 +441,8 @@
       "id": "answer-skip-1",
       "credentials": {
         "telegramApi": {
-          "id": "TELEGRAM_CREDENTIAL_ID",
-          "name": "Telegram Bot"
+          "id": "YVjc6H5lAo36paMF",
+          "name": "Gmail Bot"
         }
       }
     },
