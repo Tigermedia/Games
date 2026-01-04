@@ -1,0 +1,19 @@
+{
+  "name": "gmail-agent",
+  "version": "1.0.0",
+  "description": "An intelligent Gmail automation agent using **n8n** that processes your inbox daily with AI-powered decision-making and self-learning capabilities.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:mcp": "node start-gmail-mcp.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "gmail-mcp": "^2.1.2",
+    "googleapis": "^169.0.0",
+    "open": "^11.0.0"
+  }
+}

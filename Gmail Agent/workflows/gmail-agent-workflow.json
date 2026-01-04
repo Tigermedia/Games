@@ -1,0 +1,663 @@
+{
+  "name": "Gmail Agent - Auto Label on New Email",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread",
+          "receivedAfter": "={{ $now.minus({minutes: 5}).toISO() }}"
+        },
+        "simple": false,
+        "options": {
+          "maxResults": 10
+        }
+      },
+      "id": "gmail-trigger",
+      "name": "Gmail Trigger - New Email",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Triggers every minute when new unread emails arrive"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Rules",
+          "mode": "name"
+        },
+        "options": {
+          "range": "A:K"
+        }
+      },
+      "id": "fetch-rules",
+      "name": "Fetch Rules from Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [450, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      },
+      "notes": "Load all active rules"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare email and rules for AI analysis\nconst email = $('Gmail Trigger - New Email').item.json;\nconst rules = $('Fetch Rules from Google Sheets').all();\n\n// Filter active rules only\nconst activeRules = rules.filter(r => r.json.Active === true || r.json.Active === 'TRUE');\n\n// Sort by priority (descending)\nactiveRules.sort((a, b) => (b.json.Priority || 0) - (a.json.Priority || 0));\n\n// Extract email headers\nconst getHeader = (name) => {\n  const header = email.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase());\n  return header?.value || '';\n};\n\n// Define available labels\nconst availableLabels = [\n  { name: '💼 Work', sublabels: ['Clients', 'Team', 'Projects', 'Invoices'] },\n  { name: '👤 Personal', sublabels: ['Family', 'Friends', 'Health'] },\n  { name: '📰 Newsletters', sublabels: ['Tech', 'Business', 'Other'] },\n  { name: '🔔 Notifications', sublabels: ['Social', 'Security', 'Apps', 'Banking'] },\n  { name: '🛒 Shopping', sublabels: ['Orders', 'Shipping', 'Returns'] },\n  { name: '💰 Finance', sublabels: ['Invoices', 'Receipts', 'Banking', 'Payments'] },\n  { name: '📅 Calendar', sublabels: ['Meetings', 'Events'] },\n  { name: '⬇️ Low Priority', sublabels: ['Promotions', 'Bulk'] }\n];\n\nreturn {\n  json: {\n    email: {\n      id: email.id,\n      threadId: email.threadId,\n      from: getHeader('From'),\n      to: getHeader('To'),\n      subject: getHeader('Subject'),\n      date: getHeader('Date'),\n      snippet: email.snippet || '',\n      hasAttachments: email.payload?.parts?.some(p => p.filename) || false\n    },\n    rules: activeRules.map(r => r.json),\n    availableLabels: availableLabels\n  }\n};"
+      },
+      "id": "prepare-ai-input",
+      "name": "Prepare AI Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "notes": "Extract email data and prepare for AI analysis"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an intelligent email classification agent. Your task is to analyze the email and assign the most appropriate label.\n\n## EMAIL TO ANALYZE:\n- From: {{ $json.email.from }}\n- To: {{ $json.email.to }}\n- Subject: {{ $json.email.subject }}\n- Preview: {{ $json.email.snippet }}\n- Has Attachments: {{ $json.email.hasAttachments }}\n\n## EXISTING RULES (check these first):\n{{ JSON.stringify($json.rules, null, 2) }}\n\n## AVAILABLE LABELS:\n1. 💼 Work - Business/professional emails\n   - 💼 Work/Clients - External business contacts\n   - 💼 Work/Team - Internal colleagues\n   - 💼 Work/Projects - Project-related\n   - 💼 Work/Invoices - Business invoices/quotes\n\n2. 👤 Personal - Non-work emails\n   - 👤 Personal/Family\n   - 👤 Personal/Friends\n   - 👤 Personal/Health\n\n3. 📰 Newsletters - Subscriptions/digests\n   - 📰 Newsletters/Tech\n   - 📰 Newsletters/Business\n   - 📰 Newsletters/Other\n\n4. 🔔 Notifications - Automated alerts\n   - 🔔 Notifications/Social - Social media\n   - 🔔 Notifications/Security - Login/password alerts\n   - 🔔 Notifications/Apps - SaaS notifications\n   - 🔔 Notifications/Banking - Bank alerts\n\n5. 🛒 Shopping - Orders/receipts\n   - 🛒 Shopping/Orders\n   - 🛒 Shopping/Shipping\n   - 🛒 Shopping/Returns\n\n6. 💰 Finance - Money-related\n   - 💰 Finance/Invoices\n   - 💰 Finance/Receipts\n   - 💰 Finance/Banking\n   - 💰 Finance/Payments\n\n7. 📅 Calendar - Events/scheduling\n   - 📅 Calendar/Meetings\n   - 📅 Calendar/Events\n\n8. ⬇️ Low Priority - Can wait\n   - ⬇️ Low Priority/Promotions\n   - ⬇️ Low Priority/Bulk\n\n## INSTRUCTIONS:\n1. First check if any existing rule matches\n2. If no rule matches, analyze the email content\n3. Choose the most specific label (prefer sub-labels over parent labels)\n4. Assign a confidence score (0-100)\n\n## CONFIDENCE SCORING:\n- 95-100: Exact match (known sender, clear pattern)\n- 85-94: Strong match (clear category, typical pattern)\n- 70-84: Moderate match (some uncertainty)\n- 50-69: Weak match (guessing)\n- 0-49: Very uncertain\n\n## RESPONSE FORMAT (JSON only):\n{\n  \"label\": \"Full label name with emoji (e.g., '💼 Work/Clients')\",\n  \"confidence\": 85,\n  \"matchedRuleId\": null or rule ID number,\n  \"reasoning\": \"Brief explanation of why this label was chosen\"\n}\n\nRespond with ONLY the JSON object, no other text.",
+        "options": {
+          "systemMessage": "You are an expert email classifier. Always respond with valid JSON only. Be conservative with confidence scores - only give 90+ for obvious matches."
+        }
+      },
+      "id": "ai-analyze",
+      "name": "AI: Analyze & Classify Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [850, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI"
+        }
+      },
+      "notes": "AI analyzes email and assigns label with confidence score"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and determine routing\nconst aiResponse = $input.item.json;\nconst email = $('Prepare AI Input').item.json.email;\n\n// Parse the AI response (handle string or object)\nlet decision;\ntry {\n  decision = typeof aiResponse.output === 'string' \n    ? JSON.parse(aiResponse.output) \n    : aiResponse.output || aiResponse;\n} catch (e) {\n  // Fallback if parsing fails\n  decision = {\n    label: '📥 To Review',\n    confidence: 0,\n    matchedRuleId: null,\n    reasoning: 'Failed to parse AI response'\n  };\n}\n\nconst confidence = decision.confidence || 0;\nconst threshold = 80;\nconst isHighConfidence = confidence >= threshold;\n\nreturn {\n  json: {\n    emailId: email.id,\n    threadId: email.threadId,\n    from: email.from,\n    subject: email.subject,\n    snippet: email.snippet,\n    assignedLabel: decision.label,\n    confidence: confidence,\n    matchedRuleId: decision.matchedRuleId,\n    reasoning: decision.reasoning,\n    isHighConfidence: isHighConfidence,\n    needsReview: !isHighConfidence,\n    branch: isHighConfidence ? 'confident' : 'uncertain'\n  }\n};"
+      },
+      "id": "parse-ai-response",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300],
+      "notes": "Parse AI decision and determine confidence branch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.branch }}",
+                    "rightValue": "confident",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "High Confidence"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.branch }}",
+                    "rightValue": "uncertain",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Low Confidence"
+            }
+          ]
+        }
+      },
+      "id": "route-by-confidence",
+      "name": "Route by Confidence",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [1250, 300],
+      "notes": "Route to appropriate branch based on confidence"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "={{ $json.assignedLabel }}",
+          "mode": "name"
+        }
+      },
+      "id": "apply-label-confident",
+      "name": "High Conf: Apply Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1450, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Apply the AI-assigned label (high confidence)"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "✅ Processed",
+          "mode": "name"
+        }
+      },
+      "id": "mark-processed-confident",
+      "name": "High Conf: Mark Processed",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1650, 200],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Mark email as processed"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Activity Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
+            "Email ID": "={{ $json.emailId }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Label Applied": "={{ $json.assignedLabel }}",
+            "Confidence": "={{ $json.confidence }}",
+            "Rule ID": "={{ $json.matchedRuleId }}",
+            "User Decision": "No",
+            "Success": "TRUE"
+          }
+        }
+      },
+      "id": "log-activity-confident",
+      "name": "High Conf: Log Activity",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1850, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      },
+      "notes": "Log the automatic classification"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "📥 To Review",
+          "mode": "name"
+        }
+      },
+      "id": "apply-review-label",
+      "name": "Low Conf: Apply To Review Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1450, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Apply 'To Review' label for uncertain emails"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "={{ $json.assignedLabel }}",
+          "mode": "name"
+        }
+      },
+      "id": "apply-bestguess-label",
+      "name": "Low Conf: Apply Best Guess Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1650, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Also apply the best-guess label"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate decision email with label buttons\nconst data = $input.item.json;\nconst resumeUrl = $execution.resumeUrl;\n\n// All available label options\nconst labelOptions = [\n  { emoji: '💼', label: '💼 Work', sublabels: ['Clients', 'Team', 'Projects', 'Invoices'] },\n  { emoji: '👤', label: '👤 Personal', sublabels: ['Family', 'Friends', 'Health'] },\n  { emoji: '📰', label: '📰 Newsletters', sublabels: ['Tech', 'Business', 'Other'] },\n  { emoji: '🔔', label: '🔔 Notifications', sublabels: ['Social', 'Security', 'Apps', 'Banking'] },\n  { emoji: '🛒', label: '🛒 Shopping', sublabels: ['Orders', 'Shipping', 'Returns'] },\n  { emoji: '💰', label: '💰 Finance', sublabels: ['Invoices', 'Receipts', 'Banking', 'Payments'] },\n  { emoji: '📅', label: '📅 Calendar', sublabels: ['Meetings', 'Events'] },\n  { emoji: '⬇️', label: '⬇️ Low Priority', sublabels: ['Promotions', 'Bulk'] }\n];\n\n// Generate button HTML\nconst generateButton = (label, emailId) => {\n  const encodedLabel = encodeURIComponent(label);\n  const url = `${resumeUrl}?label=${encodedLabel}&emailId=${emailId}`;\n  return `<a href=\"${url}\" style=\"display:inline-block;padding:10px 16px;margin:4px;background-color:#4285f4;color:white;text-decoration:none;border-radius:6px;font-size:14px;\">${label}</a>`;\n};\n\n// Build main category buttons\nlet mainButtons = labelOptions.map(opt => generateButton(opt.label, data.emailId)).join('\\n');\n\n// Build sublabel section (expandable reference)\nlet sublabelInfo = labelOptions.map(opt => {\n  const sublabelButtons = opt.sublabels.map(sub => \n    generateButton(`${opt.label}/${sub}`, data.emailId)\n  ).join('');\n  return `<div style=\"margin:10px 0;\"><strong>${opt.label}</strong><br>${sublabelButtons}</div>`;\n}).join('');\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head><meta charset=\"utf-8\"></head>\n<body style=\"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#f5f5f5;\">\n  <div style=\"background:white;padding:24px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);\">\n    <h2 style=\"margin-top:0;color:#333;\">🤖 Gmail Agent Needs Your Help</h2>\n    \n    <p style=\"color:#666;\">I'm not confident about how to label this email:</p>\n    \n    <div style=\"background:#f8f9fa;padding:16px;border-radius:8px;margin:20px 0;border-left:4px solid #4285f4;\">\n      <p style=\"margin:0 0 8px 0;\"><strong>From:</strong> ${data.from}</p>\n      <p style=\"margin:0 0 8px 0;\"><strong>Subject:</strong> ${data.subject}</p>\n      <p style=\"margin:0;color:#666;\"><strong>Preview:</strong> ${data.snippet}</p>\n    </div>\n    \n    <div style=\"background:#fff3cd;padding:12px;border-radius:6px;margin:16px 0;\">\n      <p style=\"margin:0;font-size:14px;\">🎯 <strong>My best guess:</strong> ${data.assignedLabel} (${data.confidence}% confident)</p>\n      <p style=\"margin:4px 0 0 0;font-size:13px;color:#856404;\">${data.reasoning}</p>\n    </div>\n    \n    <h3 style=\"color:#333;\">Choose the correct label:</h3>\n    \n    <div style=\"margin:16px 0;\">\n      ${mainButtons}\n    </div>\n    \n    <details style=\"margin-top:20px;\">\n      <summary style=\"cursor:pointer;color:#4285f4;font-weight:bold;\">📂 Show sub-labels for more precision</summary>\n      <div style=\"margin-top:12px;padding:12px;background:#f8f9fa;border-radius:8px;\">\n        ${sublabelInfo}\n      </div>\n    </details>\n    \n    <hr style=\"margin:24px 0;border:none;border-top:1px solid #eee;\">\n    \n    <p style=\"color:#999;font-size:12px;margin:0;\">\n      Your choice will create a rule for similar emails in the future.\n      <br>This request expires in 7 days.\n    </p>\n  </div>\n</body>\n</html>\n`;\n\nreturn {\n  json: {\n    ...data,\n    decisionEmailHtml: html,\n    decisionEmailSubject: `🤖 Help me label: ${data.subject.substring(0, 50)}...`\n  }\n};"
+      },
+      "id": "generate-decision-email",
+      "name": "Low Conf: Generate Decision Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 400],
+      "notes": "Create decision email with label buttons"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "={{ $json.decisionEmailSubject }}",
+        "emailType": "html",
+        "message": "={{ $json.decisionEmailHtml }}"
+      },
+      "id": "send-decision-email",
+      "name": "Low Conf: Send Decision Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2050, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Send decision request to user"
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "limit": 604800000,
+        "options": {}
+      },
+      "id": "wait-for-response",
+      "name": "Low Conf: Wait for Response",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2250, 400],
+      "webhookId": "gmail-agent-label-decision",
+      "notes": "Wait up to 7 days for user to click label button"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse user's label selection from webhook\nconst query = $input.item.json.query || {};\nconst selectedLabel = decodeURIComponent(query.label || '');\nconst emailId = query.emailId;\n\n// Get original email data from earlier node\nconst originalData = $('Low Conf: Generate Decision Email').item.json;\n\nreturn {\n  json: {\n    emailId: emailId,\n    from: originalData.from,\n    subject: originalData.subject,\n    snippet: originalData.snippet,\n    originalGuess: originalData.assignedLabel,\n    selectedLabel: selectedLabel,\n    userOverride: selectedLabel !== originalData.assignedLabel\n  }\n};"
+      },
+      "id": "parse-user-response",
+      "name": "Low Conf: Parse User Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2450, 400],
+      "notes": "Extract user's label choice from webhook"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "={{ $json.originalGuess }}",
+          "mode": "name"
+        }
+      },
+      "id": "remove-guess-label",
+      "name": "Low Conf: Remove Guess Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2650, 350],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Remove the best-guess label if user chose differently",
+      "executeOnce": false,
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "={{ $json.selectedLabel }}",
+          "mode": "name"
+        }
+      },
+      "id": "apply-user-label",
+      "name": "Low Conf: Apply User Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2850, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Apply the user's chosen label"
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "📥 To Review",
+          "mode": "name"
+        }
+      },
+      "id": "remove-review-label",
+      "name": "Low Conf: Remove Review Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3050, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Remove 'To Review' label after user decides"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": {
+          "__rl": true,
+          "value": "✅ Processed",
+          "mode": "name"
+        }
+      },
+      "id": "mark-processed-user",
+      "name": "Low Conf: Mark Processed",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3250, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Mark email as processed"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract a reusable rule from this user decision.\n\nEMAIL:\n- From: {{ $json.from }}\n- Subject: {{ $json.subject }}\n\nUSER'S LABEL CHOICE: {{ $json.selectedLabel }}\n\nCreate a rule that will automatically apply this label to similar emails in the future.\n\nRULE TYPES:\n- sender: Exact email match (e.g., newsletter@company.com)\n- domain: Domain match (e.g., @amazon.com)\n- subject_contains: Keywords in subject\n- content_ai: Semantic/AI-based matching\n\nRESPOND WITH JSON ONLY:\n{\n  \"type\": \"sender|domain|subject_contains|content_ai\",\n  \"pattern\": \"the pattern to match\",\n  \"label\": \"{{ $json.selectedLabel }}\",\n  \"priority\": 10,\n  \"description\": \"Human-readable rule description\"\n}\n\nChoose the most specific rule type that will accurately match similar emails without false positives.\nFor newsletters and automated emails, prefer 'sender' or 'domain'.\nFor content-based matching, use 'subject_contains' or 'content_ai'.",
+        "options": {
+          "systemMessage": "You are an expert at creating email classification rules. Respond with valid JSON only."
+        }
+      },
+      "id": "ai-extract-pattern",
+      "name": "Low Conf: AI Extract Pattern",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [3450, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI"
+        }
+      },
+      "notes": "AI extracts a reusable rule from user's decision"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI-generated rule\nconst aiResponse = $input.item.json;\nconst userData = $('Low Conf: Parse User Response').item.json;\n\nlet rule;\ntry {\n  rule = typeof aiResponse.output === 'string' \n    ? JSON.parse(aiResponse.output) \n    : aiResponse.output || aiResponse;\n} catch (e) {\n  rule = {\n    type: 'sender',\n    pattern: userData.from,\n    label: userData.selectedLabel,\n    priority: 10,\n    description: `Auto-created rule for ${userData.from}`\n  };\n}\n\nreturn {\n  json: {\n    ...userData,\n    newRule: {\n      Type: rule.type,\n      Pattern: rule.pattern,\n      Label: rule.label,\n      Priority: rule.priority,\n      Active: true,\n      Created: new Date().toISOString().split('T')[0],\n      'Last Used': new Date().toISOString().split('T')[0],\n      'Use Count': 0,\n      Notes: rule.description\n    }\n  }\n};"
+      },
+      "id": "prepare-new-rule",
+      "name": "Low Conf: Prepare New Rule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3650, 400],
+      "notes": "Format rule for Google Sheets"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Rules",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Type": "={{ $json.newRule.Type }}",
+            "Pattern": "={{ $json.newRule.Pattern }}",
+            "Label": "={{ $json.newRule.Label }}",
+            "Priority": "={{ $json.newRule.Priority }}",
+            "Active": "={{ $json.newRule.Active }}",
+            "Created": "={{ $json.newRule.Created }}",
+            "Last Used": "={{ $json.newRule['Last Used'] }}",
+            "Use Count": "={{ $json.newRule['Use Count'] }}",
+            "Notes": "={{ $json.newRule.Notes }}"
+          }
+        }
+      },
+      "id": "create-rule",
+      "name": "Low Conf: Create Rule",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [3850, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      },
+      "notes": "Add new rule to Rules sheet"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Activity Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.format('YYYY-MM-DD HH:mm:ss') }}",
+            "Email ID": "={{ $json.emailId }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Label Applied": "={{ $json.selectedLabel }}",
+            "Confidence": "=User Decision",
+            "Rule ID": "=New Rule Created",
+            "User Decision": "Yes",
+            "Success": "TRUE"
+          }
+        }
+      },
+      "id": "log-activity-user",
+      "name": "Low Conf: Log Activity",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [4050, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      },
+      "notes": "Log user decision and new rule"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "=✅ New Label Rule Created",
+        "emailType": "html",
+        "message": "=<html>\n<body style=\"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:500px;margin:0 auto;padding:20px;\">\n  <div style=\"background:#d4edda;padding:20px;border-radius:8px;border-left:4px solid #28a745;\">\n    <h3 style=\"margin-top:0;color:#155724;\">✅ Rule Created Successfully!</h3>\n    <p style=\"margin-bottom:0;\">I'll automatically apply <strong>{{ $json.selectedLabel }}</strong> to similar emails from now on.</p>\n  </div>\n  \n  <div style=\"margin-top:16px;padding:16px;background:#f8f9fa;border-radius:8px;\">\n    <p style=\"margin:0 0 8px 0;\"><strong>Rule Details:</strong></p>\n    <ul style=\"margin:0;padding-left:20px;\">\n      <li>Type: {{ $json.newRule.Type }}</li>\n      <li>Pattern: {{ $json.newRule.Pattern }}</li>\n      <li>Label: {{ $json.newRule.Label }}</li>\n    </ul>\n  </div>\n  \n  <p style=\"color:#666;font-size:12px;margin-top:16px;\">You can edit or delete this rule in your Google Sheets database.</p>\n</body>\n</html>"
+      },
+      "id": "send-confirmation",
+      "name": "Low Conf: Send Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [4250, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail OAuth2"
+        }
+      },
+      "notes": "Confirm new rule creation to user"
+    }
+  ],
+  "connections": {
+    "Gmail Trigger - New Email": {
+      "main": [[{ "node": "Fetch Rules from Google Sheets", "type": "main", "index": 0 }]]
+    },
+    "Fetch Rules from Google Sheets": {
+      "main": [[{ "node": "Prepare AI Input", "type": "main", "index": 0 }]]
+    },
+    "Prepare AI Input": {
+      "main": [[{ "node": "AI: Analyze & Classify Email", "type": "main", "index": 0 }]]
+    },
+    "AI: Analyze & Classify Email": {
+      "main": [[{ "node": "Parse AI Response", "type": "main", "index": 0 }]]
+    },
+    "Parse AI Response": {
+      "main": [[{ "node": "Route by Confidence", "type": "main", "index": 0 }]]
+    },
+    "Route by Confidence": {
+      "main": [
+        [{ "node": "High Conf: Apply Label", "type": "main", "index": 0 }],
+        [{ "node": "Low Conf: Apply To Review Label", "type": "main", "index": 0 }]
+      ]
+    },
+    "High Conf: Apply Label": {
+      "main": [[{ "node": "High Conf: Mark Processed", "type": "main", "index": 0 }]]
+    },
+    "High Conf: Mark Processed": {
+      "main": [[{ "node": "High Conf: Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Apply To Review Label": {
+      "main": [[{ "node": "Low Conf: Apply Best Guess Label", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Apply Best Guess Label": {
+      "main": [[{ "node": "Low Conf: Generate Decision Email", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Generate Decision Email": {
+      "main": [[{ "node": "Low Conf: Send Decision Email", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Send Decision Email": {
+      "main": [[{ "node": "Low Conf: Wait for Response", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Wait for Response": {
+      "main": [[{ "node": "Low Conf: Parse User Response", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Parse User Response": {
+      "main": [[{ "node": "Low Conf: Remove Guess Label", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Remove Guess Label": {
+      "main": [[{ "node": "Low Conf: Apply User Label", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Apply User Label": {
+      "main": [[{ "node": "Low Conf: Remove Review Label", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Remove Review Label": {
+      "main": [[{ "node": "Low Conf: Mark Processed", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Mark Processed": {
+      "main": [[{ "node": "Low Conf: AI Extract Pattern", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: AI Extract Pattern": {
+      "main": [[{ "node": "Low Conf: Prepare New Rule", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Prepare New Rule": {
+      "main": [[{ "node": "Low Conf: Create Rule", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Create Rule": {
+      "main": [[{ "node": "Low Conf: Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Low Conf: Log Activity": {
+      "main": [[{ "node": "Low Conf: Send Confirmation", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["gmail", "automation", "ai"],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-XX",
+  "versionId": "2.0"
+}

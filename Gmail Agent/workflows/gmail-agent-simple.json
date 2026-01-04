@@ -1,0 +1,129 @@
+{
+  "name": "Gmail Agent - Auto Label",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        },
+        "simple": false,
+        "options": {
+          "maxResults": 10
+        }
+      },
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract email info\nconst email = $input.item.json;\n\nconst getHeader = (name) => {\n  const header = email.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase());\n  return header?.value || '';\n};\n\nreturn {\n  json: {\n    id: email.id,\n    threadId: email.threadId,\n    from: getHeader('From'),\n    subject: getHeader('Subject'),\n    snippet: email.snippet || '',\n    date: getHeader('Date')\n  }\n};"
+      },
+      "name": "Extract Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Classify this email into ONE of these labels:\n- 💼 Work\n- 👤 Personal\n- 📰 Newsletters\n- 🔔 Notifications\n- 🛒 Shopping\n- 💰 Finance\n- 📅 Calendar\n- ⬇️ Low Priority\n\nEmail:\nFrom: {{ $json.from }}\nSubject: {{ $json.subject }}\nPreview: {{ $json.snippet }}\n\nRespond with ONLY a JSON object:\n{\"label\": \"the label with emoji\", \"confidence\": 85}",
+        "options": {
+          "systemMessage": "You are an email classifier. Respond with valid JSON only."
+        }
+      },
+      "name": "AI Classify",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Extract Email Data').item.json;\nconst ai = $input.item.json;\n\nlet result;\ntry {\n  result = typeof ai.output === 'string' ? JSON.parse(ai.output) : ai.output || ai;\n} catch (e) {\n  result = { label: '📥 To Review', confidence: 0 };\n}\n\nreturn {\n  json: {\n    emailId: email.id,\n    from: email.from,\n    subject: email.subject,\n    label: result.label,\n    confidence: result.confidence || 0,\n    isHighConfidence: (result.confidence || 0) >= 80\n  }\n};"
+      },
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.isHighConfidence }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "name": "High Confidence?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": ["={{ $json.label }}"]
+      },
+      "name": "Apply Label",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": ["📥 To Review"]
+      },
+      "name": "Mark for Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [[{"node": "Extract Email Data", "type": "main", "index": 0}]]
+    },
+    "Extract Email Data": {
+      "main": [[{"node": "AI Classify", "type": "main", "index": 0}]]
+    },
+    "AI Classify": {
+      "main": [[{"node": "Parse Result", "type": "main", "index": 0}]]
+    },
+    "Parse Result": {
+      "main": [[{"node": "High Confidence?", "type": "main", "index": 0}]]
+    },
+    "High Confidence?": {
+      "main": [
+        [{"node": "Apply Label", "type": "main", "index": 0}],
+        [{"node": "Mark for Review", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

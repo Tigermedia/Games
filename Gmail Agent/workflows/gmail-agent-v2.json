@@ -1,0 +1,110 @@
+{
+  "name": "Gmail Agent - Auto Label v2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [{ "mode": "everyMinute" }]
+        },
+        "filters": { "readStatus": "unread" },
+        "simple": false,
+        "options": { "maxResults": 10 }
+      },
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Label ID mapping (from Gmail API)\nconst LABEL_MAP = {\n  '💼 Work': 'Label_144',\n  '💼 Work/Clients': 'Label_145',\n  '💼 Work/Team': 'Label_146',\n  '💼 Work/Projects': 'Label_147',\n  '💼 Work/Invoices': 'Label_148',\n  '👤 Personal': 'Label_149',\n  '👤 Personal/Family': 'Label_150',\n  '👤 Personal/Friends': 'Label_151',\n  '👤 Personal/Health': 'Label_152',\n  '📰 Newsletters': 'Label_153',\n  '📰 Newsletters/Tech': 'Label_154',\n  '📰 Newsletters/Business': 'Label_155',\n  '📰 Newsletters/Other': 'Label_156',\n  '🔔 Notifications': 'Label_157',\n  '🔔 Notifications/Social': 'Label_158',\n  '🔔 Notifications/Security': 'Label_159',\n  '🔔 Notifications/Apps': 'Label_160',\n  '🔔 Notifications/Banking': 'Label_161',\n  '🛒 Shopping': 'Label_162',\n  '🛒 Shopping/Orders': 'Label_163',\n  '🛒 Shopping/Shipping': 'Label_164',\n  '🛒 Shopping/Returns': 'Label_165',\n  '💰 Finance': 'Label_166',\n  '💰 Finance/Invoices': 'Label_167',\n  '💰 Finance/Receipts': 'Label_168',\n  '💰 Finance/Banking': 'Label_169',\n  '💰 Finance/Payments': 'Label_170',\n  '📅 Calendar': 'Label_171',\n  '📅 Calendar/Meetings': 'Label_172',\n  '📅 Calendar/Events': 'Label_173',\n  '⬇️ Low Priority': 'Label_174',\n  '⬇️ Low Priority/Promotions': 'Label_175',\n  '⬇️ Low Priority/Bulk': 'Label_176',\n  '✅ Processed': 'Label_142',\n  '📥 To Review': 'Label_143'\n};\n\nconst email = $input.item.json;\nconst getHeader = (name) => {\n  const header = email.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase());\n  return header?.value || '';\n};\n\nreturn {\n  json: {\n    id: email.id,\n    threadId: email.threadId,\n    from: getHeader('From'),\n    subject: getHeader('Subject'),\n    snippet: email.snippet || '',\n    date: getHeader('Date'),\n    labelMap: LABEL_MAP\n  }\n};"
+      },
+      "name": "Extract Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an email classifier. Analyze this email and classify it.\n\nMAIN CATEGORIES (choose the most specific match):\n- 💼 Work (general work), 💼 Work/Clients, 💼 Work/Team, 💼 Work/Projects, 💼 Work/Invoices\n- 👤 Personal (general personal), 👤 Personal/Family, 👤 Personal/Friends, 👤 Personal/Health\n- 📰 Newsletters (general), 📰 Newsletters/Tech, 📰 Newsletters/Business, 📰 Newsletters/Other\n- 🔔 Notifications (general), 🔔 Notifications/Social, 🔔 Notifications/Security, 🔔 Notifications/Apps, 🔔 Notifications/Banking\n- 🛒 Shopping (general), 🛒 Shopping/Orders, 🛒 Shopping/Shipping, 🛒 Shopping/Returns\n- 💰 Finance (general), 💰 Finance/Invoices, 💰 Finance/Receipts, 💰 Finance/Banking, 💰 Finance/Payments\n- 📅 Calendar (general), 📅 Calendar/Meetings, 📅 Calendar/Events\n- ⬇️ Low Priority (general), ⬇️ Low Priority/Promotions, ⬇️ Low Priority/Bulk\n\nEmail:\nFrom: {{ $json.from }}\nSubject: {{ $json.subject }}\nPreview: {{ $json.snippet }}\n\nRespond with ONLY valid JSON (no markdown):\n{\"label\": \"exact label with emoji\", \"sublabel\": \"specific sublabel if applicable or null\", \"confidence\": 85, \"reason\": \"brief reason\"}",
+        "options": {
+          "systemMessage": "You are an email classifier. Always respond with valid JSON only. No markdown code blocks."
+        }
+      },
+      "name": "AI Classify",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $('Extract Email Data').item.json;\nconst labelMap = email.labelMap;\nconst ai = $input.item.json;\n\nlet result;\ntry {\n  let output = ai.output || ai.text || JSON.stringify(ai);\n  // Clean markdown code blocks if present\n  output = output.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  result = typeof output === 'string' ? JSON.parse(output) : output;\n} catch (e) {\n  result = { label: '📥 To Review', confidence: 0, reason: 'Parse error' };\n}\n\n// Get the most specific label (sublabel if exists, otherwise main label)\nconst finalLabel = result.sublabel || result.label || '📥 To Review';\nconst labelId = labelMap[finalLabel] || labelMap['📥 To Review'];\nconst processedId = labelMap['✅ Processed'];\nconst toReviewId = labelMap['📥 To Review'];\n\nreturn {\n  json: {\n    emailId: email.id,\n    from: email.from,\n    subject: email.subject,\n    label: finalLabel,\n    labelId: labelId,\n    processedId: processedId,\n    toReviewId: toReviewId,\n    confidence: result.confidence || 0,\n    reason: result.reason || '',\n    isHighConfidence: (result.confidence || 0) >= 80\n  }\n};"
+      },
+      "name": "Parse Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.isHighConfidence }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "equals" }
+          }]
+        }
+      },
+      "name": "High Confidence?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": ["={{ $json.labelId }}", "={{ $json.processedId }}"]
+      },
+      "name": "Apply Label + Processed",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": ["={{ $json.toReviewId }}"]
+      },
+      "name": "Mark for Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [[{"node": "Extract Email Data", "type": "main", "index": 0}]]
+    },
+    "Extract Email Data": {
+      "main": [[{"node": "AI Classify", "type": "main", "index": 0}]]
+    },
+    "AI Classify": {
+      "main": [[{"node": "Parse Result", "type": "main", "index": 0}]]
+    },
+    "Parse Result": {
+      "main": [[{"node": "High Confidence?", "type": "main", "index": 0}]]
+    },
+    "High Confidence?": {
+      "main": [
+        [{"node": "Apply Label + Processed", "type": "main", "index": 0}],
+        [{"node": "Mark for Review", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" }
+}

@@ -1,0 +1,6 @@
+Rule ID,Type,Pattern,Action Type,Action Details,Active,Priority,Created,Last Used,Use Count,Notes
+1,sender,newsletters@site.com,label_archive,label:Newsletters,TRUE,5,2025-01-13,2025-01-13,0,Auto-archive newsletters
+2,domain,@marketing.com,archive,-,TRUE,3,2025-01-13,,0,Marketing spam
+3,subject_contains,invoice,label,label:Invoices,TRUE,10,2025-01-13,,0,Invoice emails
+4,content_ai,meeting invitation,label,label:Meetings,TRUE,7,2025-01-13,,0,Calendar-related emails
+5,sender,boss@company.com,label,label:Priority,TRUE,15,2025-01-13,,0,Important emails from boss

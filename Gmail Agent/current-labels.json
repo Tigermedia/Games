@@ -1,0 +1,731 @@
+[
+  {
+    "id": "Label_6609019274575416444",
+    "name": "#_URGENT",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#cc3a21"
+    }
+  },
+  {
+    "id": "Label_142",
+    "name": "✅ Processed",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_174",
+    "name": "⬇️ Low Priority",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_176",
+    "name": "⬇️ Low Priority/Bulk",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_175",
+    "name": "⬇️ Low Priority/Promotions",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_149",
+    "name": "👤 Personal",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_150",
+    "name": "👤 Personal/Family",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_151",
+    "name": "👤 Personal/Friends",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_152",
+    "name": "👤 Personal/Health",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_166",
+    "name": "💰 Finance",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_169",
+    "name": "💰 Finance/Banking",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_167",
+    "name": "💰 Finance/Invoices",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_170",
+    "name": "💰 Finance/Payments",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_168",
+    "name": "💰 Finance/Receipts",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_144",
+    "name": "💼 Work",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_145",
+    "name": "💼 Work/Clients",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_148",
+    "name": "💼 Work/Invoices",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_147",
+    "name": "💼 Work/Projects",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_146",
+    "name": "💼 Work/Team",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_171",
+    "name": "📅 Calendar",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_173",
+    "name": "📅 Calendar/Events",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_172",
+    "name": "📅 Calendar/Meetings",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_143",
+    "name": "📥 To Review",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_153",
+    "name": "📰 Newsletters",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_155",
+    "name": "📰 Newsletters/Business",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_156",
+    "name": "📰 Newsletters/Other",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_154",
+    "name": "📰 Newsletters/Tech",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_157",
+    "name": "🔔 Notifications",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_160",
+    "name": "🔔 Notifications/Apps",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_161",
+    "name": "🔔 Notifications/Banking",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_159",
+    "name": "🔔 Notifications/Security",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_158",
+    "name": "🔔 Notifications/Social",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_162",
+    "name": "🛒 Shopping",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_163",
+    "name": "🛒 Shopping/Orders",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_165",
+    "name": "🛒 Shopping/Returns",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_164",
+    "name": "🛒 Shopping/Shipping",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_8487414181766590700",
+    "name": "0 - THIS WEEK",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#fb4c2f"
+    }
+  },
+  {
+    "id": "Label_5917128845136183241",
+    "name": "0_AI NEWSLETTER",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#4986e7"
+    }
+  },
+  {
+    "id": "Label_2869986661532526012",
+    "name": "1 - READ",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#dfe2ff",
+      "backgroundColor": "#0000cc"
+    }
+  },
+  {
+    "id": "Label_3773714274349565161",
+    "name": "2 - WATCH",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_5035003854920968483",
+    "name": "3 - LATER",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#094228",
+      "backgroundColor": "#42d692"
+    }
+  },
+  {
+    "id": "Label_8933674518435236661",
+    "name": "4 - IDEAS",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#094228",
+      "backgroundColor": "#42d692"
+    }
+  },
+  {
+    "id": "Label_1334533007156939272",
+    "name": "5 - BEST",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_2039049718336335231",
+    "name": "6 - TRANSLATE & PUBLISH",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_7636527524621649340",
+    "name": "7_חשבוניות ספקים",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user"
+  },
+  {
+    "id": "Label_661259381381338634",
+    "name": "7_חשבוניות ספקים/גורילה",
+    "type": "user"
+  },
+  {
+    "id": "Label_9081366652880760147",
+    "name": "7_חשבוניות ספקים/כרמל דיירקט",
+    "type": "user"
+  },
+  {
+    "id": "Label_5332394602123943525",
+    "name": "7_חשבוניות ספקים/נסלי",
+    "type": "user"
+  },
+  {
+    "id": "Label_5242834152303678346",
+    "name": "7_חשבוניות ספקים/פסיפאה / קרנה",
+    "type": "user"
+  },
+  {
+    "id": "Label_7823277063226375535",
+    "name": "7_חשבוניות ספקים/קירוסקאי",
+    "type": "user"
+  },
+  {
+    "id": "Label_19",
+    "name": "Business",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_20",
+    "name": "Business/NISSIM",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#f1f5ec",
+      "backgroundColor": "#006633"
+    }
+  },
+  {
+    "id": "Label_72",
+    "name": "Business/PayPal Receipt",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#cc3a21"
+    }
+  },
+  {
+    "id": "Label_4399729435689535817",
+    "name": "CARDCOM",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_101",
+    "name": "dbay4all",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_121",
+    "name": "FACEBOOK",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_8325591389245606925",
+    "name": "Fiencook",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#cc3a21"
+    }
+  },
+  {
+    "id": "Label_6763548470036100740",
+    "name": "Investing",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_5336905258730799208",
+    "name": "INVOICES",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_8247736641626114371",
+    "name": "LTD",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_6280527354851869991",
+    "name": "MAKE",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_6755787967517776425",
+    "name": "MAKE ERROR",
+    "type": "user"
+  },
+  {
+    "id": "Label_119",
+    "name": "OR_Contact",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_3671106175120236263",
+    "name": "ORDERS",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#ff7537"
+    }
+  },
+  {
+    "id": "Label_3167881972185495042",
+    "name": "ORDERS/KETO ORDERS",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#cc3a21"
+    }
+  },
+  {
+    "id": "Label_8588676887246306380",
+    "name": "ORDERS/PICK ERROR",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#efefef",
+      "backgroundColor": "#000000"
+    }
+  },
+  {
+    "id": "Label_2519522626472490463",
+    "name": "ORDERS/XCAL",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelShow",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#fb4c2f"
+    }
+  },
+  {
+    "id": "Label_2970934294305140443",
+    "name": "POPTIN",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_6998861460718090329",
+    "name": "SHIPPING FAILED",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_110",
+    "name": "Sites",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_66",
+    "name": "Sites/Alphahacks",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_69",
+    "name": "Sites/DBOMM",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#4986e7"
+    }
+  },
+  {
+    "id": "Label_103",
+    "name": "Sites/DLYBrands",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#44b984"
+    }
+  },
+  {
+    "id": "Label_111",
+    "name": "Sites/DLYBrands/Sales",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_5433827406822387282",
+    "name": "Sites/JM",
+    "type": "user"
+  },
+  {
+    "id": "Label_75",
+    "name": "Sites/Photobek",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#44b984"
+    }
+  },
+  {
+    "id": "Label_83",
+    "name": "Sites/Sousvide",
+    "messageListVisibility": "hide",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#e66550"
+    }
+  },
+  {
+    "id": "Label_1341689768964753361",
+    "name": "Sites/Sousvide/ANOVA PRE ORDER",
+    "type": "user"
+  },
+  {
+    "id": "Label_4277768301354246542",
+    "name": "Sites/Sousvide/HELP",
+    "type": "user"
+  },
+  {
+    "id": "Label_365014697824896459",
+    "name": "Sites/Sousvide/איסוף עצמי",
+    "type": "user"
+  },
+  {
+    "id": "Label_1714467550177579520",
+    "name": "Sites/Sousvide/החזרות",
+    "type": "user"
+  },
+  {
+    "id": "Label_7386016543120105150",
+    "name": "Sites/Sousvide/החזרים",
+    "type": "user"
+  },
+  {
+    "id": "Label_5285404783644982766",
+    "name": "SV Invoice",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_120",
+    "name": "TIGERMEDIA",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#ff7537"
+    }
+  },
+  {
+    "id": "Label_109",
+    "name": "Trips",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_678208330523039977",
+    "name": "Trips/ALASKA אלסקה",
+    "type": "user"
+  },
+  {
+    "id": "Label_102",
+    "name": "Trips/Berlin",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#16a765"
+    }
+  },
+  {
+    "id": "Label_108",
+    "name": "Trips/Honeymoon",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#ffffff",
+      "backgroundColor": "#44b984"
+    }
+  },
+  {
+    "id": "Label_721814051736812480",
+    "name": "Trips/HUST",
+    "type": "user"
+  },
+  {
+    "id": "Label_1770979664079033556",
+    "name": "Trips/NORWAY CRUISE",
+    "type": "user"
+  },
+  {
+    "id": "Label_7843230396826949413",
+    "name": "Trips/PARIS",
+    "type": "user"
+  },
+  {
+    "id": "Label_113",
+    "name": "Trips/Santorini",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user"
+  },
+  {
+    "id": "Label_47",
+    "name": "Trips/Trip",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#222222",
+      "backgroundColor": "#eeeeee"
+    }
+  },
+  {
+    "id": "Label_52",
+    "name": "Trips/USA",
+    "messageListVisibility": "show",
+    "labelListVisibility": "labelHide",
+    "type": "user",
+    "color": {
+      "textColor": "#222222",
+      "backgroundColor": "#eeeeee"
+    }
+  },
+  {
+    "id": "Label_6941158701458473102",
+    "name": "Trips/סיישל",
+    "type": "user"
+  },
+  {
+    "id": "Label_307221300205723022",
+    "name": "Trips/רודוס 10-2024",
+    "type": "user"
+  },
+  {
+    "id": "Label_6949917709340480579",
+    "name": "Trips/תאילנד 2022",
+    "type": "user"
+  }
+]

@@ -1,0 +1,226 @@
+# Gmail Agent - Git Ignore File
+
+# ========================================
+# n8n Workflow Files (Credentials)
+# ========================================
+# NEVER commit n8n workflows with embedded credentials
+**/workflows/*credentials*.json
+n8n-data/
+.n8n/
+
+# ========================================
+# API Keys and Secrets
+# ========================================
+# Sensitive credentials
+*.key
+*.pem
+*.p12
+*-key.json
+credentials.json
+secrets.json
+.env
+.env.local
+.env.*.local
+
+# OpenAI / Anthropic API keys
+openai-key.txt
+anthropic-key.txt
+api-keys.txt
+
+# Google Cloud credentials
+gcloud-credentials.json
+service-account*.json
+oauth-credentials.json
+gcp-oauth.keys.json
+gmail-token.json
+
+# ========================================
+# Google Sheets Data
+# ========================================
+# Exported sheets with email data
+gmail-rules-export.csv
+activity-log-export.csv
+email-data*.csv
+*.xlsx
+*.xls
+
+# ========================================
+# Email Data & Personal Information
+# ========================================
+# Test emails with real data
+test-emails/
+email-backups/
+*.eml
+*.mbox
+
+# Personal information
+personal-config.json
+my-email-addresses.txt
+
+# ========================================
+# n8n Execution Logs
+# ========================================
+# Logs may contain email content
+logs/
+*.log
+execution-data/
+debug-output/
+
+# ========================================
+# Temporary Files
+# ========================================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ========================================
+# IDE and Editor Files
+# ========================================
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# Node.js (if using self-hosted n8n)
+# ========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ========================================
+# Docker (if using self-hosted n8n)
+# ========================================
+docker-compose.override.yml
+.docker/
+
+# ========================================
+# Testing & Development
+# ========================================
+# Test data with real emails
+test-data/
+mock-emails/
+fixtures/real-emails/
+
+# Coverage reports
+coverage/
+*.coverage
+.nyc_output/
+
+# ========================================
+# Backup Files
+# ========================================
+# Database backups may contain email data
+backups/
+*.backup
+*.dump
+*.sql
+
+# Google Sheets backups with email data
+rules-backup-*.csv
+activity-backup-*.csv
+
+# ========================================
+# CI/CD
+# ========================================
+.github/workflows/*credentials*
+
+# ========================================
+# Documentation (Generated)
+# ========================================
+# Keep markdown files, but ignore generated docs with secrets
+docs/private/
+docs/credentials/
+
+# ========================================
+# OS Generated Files
+# ========================================
+# Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+.directory
+.Trash-*
+
+# ========================================
+# Project-Specific Ignores
+# ========================================
+# Workflow JSON exports with real data
+workflow-export-with-data.json
+
+# Gmail Agent specific
+gmail-agent-config.json
+my-rules.json
+personal-sheet-id.txt
+
+# ========================================
+# Keep These Files (Important)
+# ========================================
+# Documentation (safe to commit)
+!README.md
+!PLAN.md
+!TODOS.md
+!CHANGELOG.md
+!claude.md
+!IMPLEMENTATION_GUIDE.md
+!WORKFLOW_STRUCTURE.md
+!GOOGLE_SHEETS_TEMPLATE.md
+!API_CONFIGURATION.md
+!QUICK_START_GUIDE.md
+!GMAIL_AGENT_PLAN.md
+
+# Configuration templates (without real data)
+!.claude/settings.example.json
+!workflow-template.json
+
+# ========================================
+# Security Note
+# ========================================
+# This .gitignore is designed to prevent committing:
+# 1. API keys and credentials
+# 2. Email content and personal data
+# 3. Google Sheets exports with email info
+# 4. n8n credentials and execution data
+#
+# Always review files before committing!
+# Use: git status --ignored
+# To see what's being ignored
