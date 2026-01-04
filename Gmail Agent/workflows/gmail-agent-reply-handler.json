@@ -1,0 +1,230 @@
+{
+  "name": "Gmail Agent - Reply Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [{ "mode": "everyMinute" }]
+        },
+        "simple": false,
+        "filters": {
+          "readStatus": "unread",
+          "subject": "Re: 📬 Gmail Agent"
+        },
+        "options": {}
+      },
+      "name": "Gmail Reply Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [100, 300],
+      "id": "reply-trigger-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const email = $input.item.json;\n\n// Extract headers\nconst getHeader = (name) => {\n  const header = email.payload?.headers?.find(h => h.name.toLowerCase() === name.toLowerCase());\n  return header?.value || '';\n};\n\n// Get the plain text body from the reply\nlet replyText = '';\nif (email.payload?.body?.data) {\n  replyText = Buffer.from(email.payload.body.data, 'base64').toString('utf8');\n} else if (email.payload?.parts) {\n  const textPart = email.payload.parts.find(p => p.mimeType === 'text/plain');\n  if (textPart?.body?.data) {\n    replyText = Buffer.from(textPart.body.data, 'base64').toString('utf8');\n  }\n}\n\n// Clean up the reply - remove quoted text (lines starting with >)\nconst lines = replyText.split('\\n');\nconst userReply = lines\n  .filter(line => !line.trim().startsWith('>'))\n  .filter(line => !line.includes('On ') || !line.includes(' wrote:'))\n  .filter(line => !line.includes('---------- Forwarded message'))\n  .join('\\n')\n  .trim();\n\n// Try to extract the original email ID from the thread\nconst threadId = email.threadId;\nconst references = getHeader('References') || getHeader('In-Reply-To') || '';\n\nreturn {\n  json: {\n    replyId: email.id,\n    threadId: threadId,\n    userReply: userReply,\n    references: references,\n    from: getHeader('From'),\n    subject: getHeader('Subject')\n  }\n};"
+      },
+      "name": "Extract Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [300, 300],
+      "id": "extract-reply-1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a rule extraction assistant. The user replied to an email classification request with instructions on how to handle similar emails in the future.\n\nUser's reply:\n\"{{ $json.userReply }}\"\n\nExtract a rule from this reply. The rule should specify:\n1. type: What to match (sender, domain, subject, content)\n2. pattern: The pattern to match (email address, domain, keyword)\n3. label: The Gmail label to apply (use exact emoji labels like 💼 Work, 📰 Newsletters, etc.)\n4. action: What to do (label, archive, delete)\n\nAvailable labels:\n- 💼 Work, 💼 Work/Clients, 💼 Work/Team, 💼 Work/Projects, 💼 Work/Invoices\n- 👤 Personal, 👤 Personal/Family, 👤 Personal/Friends, 👤 Personal/Health\n- 📰 Newsletters, 📰 Newsletters/Tech, 📰 Newsletters/Business, 📰 Newsletters/Other\n- 🔔 Notifications, 🔔 Notifications/Social, 🔔 Notifications/Security, 🔔 Notifications/Apps, 🔔 Notifications/Banking\n- 🛒 Shopping, 🛒 Shopping/Orders, 🛒 Shopping/Shipping, 🛒 Shopping/Returns\n- 💰 Finance, 💰 Finance/Invoices, 💰 Finance/Receipts, 💰 Finance/Banking, 💰 Finance/Payments\n- 📅 Calendar, 📅 Calendar/Meetings, 📅 Calendar/Events\n- ⬇️ Low Priority, ⬇️ Low Priority/Promotions, ⬇️ Low Priority/Bulk\n\nRespond with ONLY valid JSON (no markdown):\n{\n  \"type\": \"sender|domain|subject|content\",\n  \"pattern\": \"the pattern to match\",\n  \"label\": \"exact label with emoji\",\n  \"action\": \"label|archive|delete\",\n  \"description\": \"human readable description of the rule\",\n  \"confidence\": 85\n}",
+        "options": {
+          "systemMessage": "You are a rule extraction assistant. Extract email handling rules from user instructions. Always respond with valid JSON only."
+        }
+      },
+      "name": "AI Extract Rule",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 300],
+      "id": "ai-extract-1"
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "gpt-4.1-mini" },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [400, 500],
+      "id": "openai-reply-1",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "vaKjVFGWeNjpaqHu",
+          "name": "OpenAi - n8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const reply = $('Extract Reply').item.json;\nconst ai = $input.item.json;\n\nlet rule;\ntry {\n  let output = ai.output || ai.text || JSON.stringify(ai);\n  output = output.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  rule = typeof output === 'string' ? JSON.parse(output) : output;\n} catch (e) {\n  rule = {\n    type: 'content',\n    pattern: reply.userReply.substring(0, 50),\n    label: '📥 To Review',\n    action: 'label',\n    description: 'Failed to parse rule',\n    confidence: 0\n  };\n}\n\nreturn {\n  json: {\n    replyId: reply.replyId,\n    threadId: reply.threadId,\n    userReply: reply.userReply,\n    rule: rule,\n    isValid: rule.confidence >= 70\n  }\n};"
+      },
+      "name": "Parse Rule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300],
+      "id": "parse-rule-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "strict" },
+          "combinator": "and",
+          "conditions": [{
+            "leftValue": "={{ $json.isValid }}",
+            "rightValue": true,
+            "operator": { "type": "boolean", "operation": "equals" }
+          }]
+        },
+        "options": {}
+      },
+      "name": "Valid Rule?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [900, 300],
+      "id": "valid-rule-1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "mode": "id", "value": "1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE" },
+        "sheetName": { "__rl": true, "mode": "list", "value": "gid=786446976", "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZnpD6Nw8Jl-mgE0ZQ6rc4aElQKUhQKKHQiSrDjAuPwE/edit#gid=786446976", "cachedResultName": "Rules" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Rule ID": "={{ Math.floor(Date.now() / 1000) }}",
+            "Type": "={{ $json.rule.type }}",
+            "Pattern": "={{ $json.rule.pattern }}",
+            "Label": "={{ $json.rule.label }}",
+            "Action": "={{ $json.rule.action }}",
+            "Priority": "=15",
+            "Active": "=TRUE",
+            "Created": "={{ $now.toISO() }}",
+            "Last Used": "={{ $now.toISO() }}",
+            "Use Count": "=0",
+            "Source": "=user_reply",
+            "Original Text": "={{ $json.userReply }}"
+          }
+        },
+        "options": {}
+      },
+      "name": "Save New Rule",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1100, 200],
+      "id": "save-new-rule-1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RrwMG8EcQXSzRAZB",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=dror.bekerman@gmail.com",
+        "subject": "=✅ Gmail Agent: New rule created!",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: linear-gradient(135deg, #34c759 0%, #30d158 100%); color: white; padding: 20px; border-radius: 10px 10px 0 0;\">\n    <h2 style=\"margin: 0;\">✅ New Rule Created!</h2>\n  </div>\n  \n  <div style=\"background: #f8f9fa; padding: 20px; border: 1px solid #e9ecef;\">\n    <h3 style=\"color: #333;\">Rule Details:</h3>\n    <table style=\"width: 100%; border-collapse: collapse;\">\n      <tr style=\"background: white;\">\n        <td style=\"padding: 10px; border: 1px solid #ddd;\"><strong>Type:</strong></td>\n        <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.rule.type }}</td>\n      </tr>\n      <tr style=\"background: #f8f9fa;\">\n        <td style=\"padding: 10px; border: 1px solid #ddd;\"><strong>Pattern:</strong></td>\n        <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.rule.pattern }}</td>\n      </tr>\n      <tr style=\"background: white;\">\n        <td style=\"padding: 10px; border: 1px solid #ddd;\"><strong>Label:</strong></td>\n        <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.rule.label }}</td>\n      </tr>\n      <tr style=\"background: #f8f9fa;\">\n        <td style=\"padding: 10px; border: 1px solid #ddd;\"><strong>Action:</strong></td>\n        <td style=\"padding: 10px; border: 1px solid #ddd;\">{{ $json.rule.action }}</td>\n      </tr>\n    </table>\n    \n    <div style=\"margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 5px;\">\n      <p style=\"margin: 0; color: #0056b3;\"><strong>Description:</strong> {{ $json.rule.description }}</p>\n    </div>\n    \n    <p style=\"color: #666; margin-top: 15px;\">Future emails matching this pattern will be automatically labeled.</p>\n  </div>\n  \n  <div style=\"background: #f1f1f1; padding: 15px; border-radius: 0 0 10px 10px; text-align: center;\">\n    <p style=\"margin: 0; color: #666;\">🤖 Gmail Agent is learning from you!</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "name": "Confirm Rule Created",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1300, 200],
+      "id": "confirm-rule-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=dror.bekerman@gmail.com",
+        "subject": "=❓ Gmail Agent: Could not understand your rule",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <div style=\"background: linear-gradient(135deg, #ff9500 0%, #ff6b00 100%); color: white; padding: 20px; border-radius: 10px;\">\n    <h2 style=\"margin: 0;\">❓ Could Not Understand Your Rule</h2>\n  </div>\n  \n  <div style=\"background: #fff3cd; padding: 20px; border: 1px solid #ffc107; margin-top: 10px; border-radius: 5px;\">\n    <p><strong>Your reply:</strong></p>\n    <p style=\"background: white; padding: 10px; border-radius: 5px;\">{{ $json.userReply }}</p>\n    \n    <p style=\"margin-top: 15px;\">I couldn't extract a clear rule from this. Please try again with clearer instructions like:</p>\n    <ul>\n      <li>\"Label as Newsletter\"</li>\n      <li>\"All emails from this sender → Work/Clients\"</li>\n      <li>\"Emails with 'invoice' in subject → Finance/Invoices\"</li>\n      <li>\"Archive all from @domain.com\"</li>\n    </ul>\n  </div>\n</div>",
+        "options": {}
+      },
+      "name": "Send Error",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 400],
+      "id": "send-error-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Extract Reply').item.json.replyId }}"
+      },
+      "name": "Mark Reply Read",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1500, 300],
+      "id": "mark-read-1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AsC5TeEQk0deTNge",
+          "name": "Gmail dror.bekerman@gmail.com"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Reply Trigger": {
+      "main": [[{ "node": "Extract Reply", "type": "main", "index": 0 }]]
+    },
+    "Extract Reply": {
+      "main": [[{ "node": "AI Extract Rule", "type": "main", "index": 0 }]]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [[{ "node": "AI Extract Rule", "type": "ai_languageModel", "index": 0 }]]
+    },
+    "AI Extract Rule": {
+      "main": [[{ "node": "Parse Rule", "type": "main", "index": 0 }]]
+    },
+    "Parse Rule": {
+      "main": [[{ "node": "Valid Rule?", "type": "main", "index": 0 }]]
+    },
+    "Valid Rule?": {
+      "main": [
+        [{ "node": "Save New Rule", "type": "main", "index": 0 }],
+        [{ "node": "Send Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Save New Rule": {
+      "main": [[{ "node": "Confirm Rule Created", "type": "main", "index": 0 }]]
+    },
+    "Confirm Rule Created": {
+      "main": [[{ "node": "Mark Reply Read", "type": "main", "index": 0 }]]
+    },
+    "Send Error": {
+      "main": [[{ "node": "Mark Reply Read", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
